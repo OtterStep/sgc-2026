@@ -1,0 +1,76 @@
+Workflow: Notificación de Nuevo Documento
+JSON
+Copy
+{
+  "name": "SGC - Notificar Nuevo Documento",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "webhook-in",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "notificar-documento"
+    },
+    {
+      "parameters": {
+        "subject": "SGC-UNT: Nuevo Documento Registrado",
+        "text": "={{ $json.documento }} ha sido creado en el SGC.",
+        "to": ["calidad@unitru.edu.pe"]
+      },
+      "name": "Send Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [450, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": { "main": [[{ "node": "Send Email", "type": "main", "index": 0 }]] }
+  }
+}
+Workflow: Alerta de Riesgo Crítico
+JSON
+Copy
+{
+  "name": "SGC - Alerta Riesgo Crítico",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "alerta-riesgo-critico"
+    },
+    {
+      "parameters": {
+        "channel": "#sgc-alertas",
+        "text": "🚨 Riesgo crítico detectado: {{ $json.riesgo_nombre }} en proceso {{ $json.proceso }}"
+      },
+      "name": "Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "subject": "ALERTA: Riesgo Crítico SGC",
+        "text": "={{ $json.mensaje }}",
+        "to": ["rector@unitru.edu.pe", "gestioncalidad@unitru.edu.pe"]
+      },
+      "name": "Email Urgente",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [450, 450]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [{ "node": "Slack", "type": "main", "index": 0 }],
+        [{ "node": "Email Urgente", "type": "main", "index": 0 }]
+      ]
+    }
+  }
+}

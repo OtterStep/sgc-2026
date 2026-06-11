@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: sgc_postgres
+    environment:
+      POSTGRES_DB: sgc_unt
+      POSTGRES_USER: sgc_admin
+      POSTGRES_PASSWORD: unt_sgc_2024
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - sgc_network
+
+  backend:
+    build: ./backend
+    container_name: sgc_backend
+    environment:
+      DATABASE_URL: postgresql://sgc_admin:unt_sgc_2024@postgres:5432/sgc_unt
+      JWT_SECRET: unt_jwt_secret_key_2024
+      N8N_WEBHOOK_URL: http://n8n:5678/webhook/
+      PORT: 3001
+    ports:
+      - "3001:3001"
+    depends_on:
+      - postgres
+    networks:
+      - sgc_network
+
+  frontend:
+    build: ./frontend
+    container_name: sgc_frontend
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3001/api/v1
+    depends_on:
+      - backend
+    networks:
+      - sgc_network
+
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: sgc_n8n
+    environment:
+      N8N_BASIC_AUTH_ACTIVE: true
+      N8N_BASIC_AUTH_USER: admin
+      N8N_BASIC_AUTH_PASSWORD: unt_n8n_2024
+    ports:
+      - "5678:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+    networks:
+      - sgc_network
+
+volumes:
+  postgres_data:
+  n8n_data:
+
+networks:
+  sgc_network:
+    driver: bridge
