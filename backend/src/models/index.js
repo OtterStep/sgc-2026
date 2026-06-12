@@ -53,6 +53,33 @@ export const Documento = sequelize.define('documentos', {
 }, { tableName: 'documentos', schema: 'sgc', timestamps: true, createdAt: 'creado_en', updatedAt: 'modificado_en' });
 
 // ==========================================
+// VERSION DOCUMENTO
+// ==========================================
+export const VersionDocumento = sequelize.define('versiones_documento', {
+  id: { type: DataTypes.UUID, primaryKey: true, defaultValue: UUIDV4 },
+  documento_id: { type: DataTypes.UUID, allowNull: false },
+  numero_version: { type: DataTypes.INTEGER, allowNull: false },
+  cambios_descripcion: { type: DataTypes.TEXT, allowNull: false },
+  contenido: DataTypes.TEXT,
+  archivo_url: DataTypes.STRING(500),
+  estado: { type: DataTypes.STRING(20), defaultValue: 'borrador' },
+  creado_por: DataTypes.UUID,
+}, { tableName: 'versiones_documento', schema: 'sgc', timestamps: true, createdAt: 'creado_en', updatedAt: false });
+
+// ==========================================
+// APROBACION DOCUMENTO
+// ==========================================
+export const AprobacionDocumento = sequelize.define('aprobaciones_documento', {
+  id: { type: DataTypes.UUID, primaryKey: true, defaultValue: UUIDV4 },
+  documento_id: { type: DataTypes.UUID, allowNull: false },
+  version_id: DataTypes.UUID,
+  aprobador_id: { type: DataTypes.UUID, allowNull: false },
+  accion: { type: DataTypes.STRING(20), allowNull: false },
+  comentario: DataTypes.TEXT,
+  fecha_aprobacion: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
+}, { tableName: 'aprobaciones_documento', schema: 'sgc', timestamps: false });
+
+// ==========================================
 // MACROPROCESO
 // ==========================================
 export const Macroproceso = sequelize.define('macroprocesos', {
@@ -99,6 +126,18 @@ export const ActividadProceso = sequelize.define('actividades_proceso', {
   creado_por: DataTypes.UUID,
   modificado_por: DataTypes.UUID,
 }, { tableName: 'actividades_proceso', schema: 'sgc', timestamps: true, createdAt: 'creado_en', updatedAt: 'modificado_en' });
+
+// ==========================================
+// FLUJO TRABAJO
+// ==========================================
+export const FlujoTrabajo = sequelize.define('flujos_trabajo', {
+  id: { type: DataTypes.UUID, primaryKey: true, defaultValue: UUIDV4 },
+  proceso_id: { type: DataTypes.UUID, allowNull: false },
+  nombre: { type: DataTypes.STRING(150), allowNull: false },
+  definicion_json: { type: DataTypes.JSONB, allowNull: false },
+  activo: { type: DataTypes.BOOLEAN, defaultValue: true },
+  creado_por: DataTypes.UUID,
+}, { tableName: 'flujos_trabajo', schema: 'sgc', timestamps: true, createdAt: 'creado_en', updatedAt: false });
 
 // ==========================================
 // ESTANDAR ACREDITACION
@@ -174,6 +213,16 @@ export const PlanAuditoria = sequelize.define('planes_auditoria', {
 }, { tableName: 'planes_auditoria', schema: 'sgc', timestamps: true, createdAt: 'creado_en', updatedAt: 'modificado_en' });
 
 // ==========================================
+// EQUIPO AUDITORIA
+// ==========================================
+export const EquipoAuditoria = sequelize.define('equipos_auditoria', {
+  id: { type: DataTypes.UUID, primaryKey: true, defaultValue: UUIDV4 },
+  plan_id: { type: DataTypes.UUID, allowNull: false },
+  auditor_id: { type: DataTypes.UUID, allowNull: false },
+  rol_en_equipo: DataTypes.STRING(30),
+}, { tableName: 'equipos_auditoria', schema: 'sgc', timestamps: true, createdAt: 'creado_en', updatedAt: false });
+
+// ==========================================
 // HALLAZGO
 // ==========================================
 export const Hallazgo = sequelize.define('hallazgos', {
@@ -211,6 +260,18 @@ export const Capa = sequelize.define('capas', {
 }, { tableName: 'capas', schema: 'sgc', timestamps: true, createdAt: 'creado_en', updatedAt: 'modificado_en' });
 
 // ==========================================
+// SEGUIMIENTO CAPA
+// ==========================================
+export const SeguimientoCapa = sequelize.define('seguimientos_capa', {
+  id: { type: DataTypes.UUID, primaryKey: true, defaultValue: UUIDV4 },
+  capa_id: { type: DataTypes.UUID, allowNull: false },
+  fecha_seguimiento: { type: DataTypes.DATEONLY, allowNull: false },
+  avance: { type: DataTypes.DECIMAL(5, 2), validate: { min: 0, max: 100 } },
+  observaciones: DataTypes.TEXT,
+  creado_por: DataTypes.UUID,
+}, { tableName: 'seguimientos_capa', schema: 'sgc', timestamps: true, createdAt: 'creado_en', updatedAt: false });
+
+// ==========================================
 // RIESGO
 // ==========================================
 export const Riesgo = sequelize.define('riesgos', {
@@ -226,6 +287,21 @@ export const Riesgo = sequelize.define('riesgos', {
   creado_por: DataTypes.UUID,
   modificado_por: DataTypes.UUID,
 }, { tableName: 'riesgos', schema: 'sgc', timestamps: true, createdAt: 'creado_en', updatedAt: 'modificado_en' });
+
+// ==========================================
+// PLAN MITIGACION
+// ==========================================
+export const PlanMitigacion = sequelize.define('planes_mitigacion', {
+  id: { type: DataTypes.UUID, primaryKey: true, defaultValue: UUIDV4 },
+  riesgo_id: { type: DataTypes.UUID, allowNull: false },
+  descripcion: { type: DataTypes.TEXT, allowNull: false },
+  acciones: DataTypes.TEXT,
+  responsable_id: DataTypes.UUID,
+  fecha_inicio: DataTypes.DATEONLY,
+  fecha_fin: DataTypes.DATEONLY,
+  estado: { type: DataTypes.STRING(20), defaultValue: 'planificado' },
+  creado_por: DataTypes.UUID,
+}, { tableName: 'planes_mitigacion', schema: 'sgc', timestamps: true, createdAt: 'creado_en', updatedAt: false });
 
 // ==========================================
 // INDICADOR
@@ -302,6 +378,16 @@ export const RespuestaEncuesta = sequelize.define('respuestas_encuesta', {
 }, { tableName: 'respuestas_encuesta', schema: 'sgc', timestamps: true, createdAt: 'enviado_en', updatedAt: false });
 
 // ==========================================
+// PARAMETRO SISTEMA
+// ==========================================
+export const ParametroSistema = sequelize.define('parametros_sistema', {
+  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  clave: { type: DataTypes.STRING(100), unique: true, allowNull: false },
+  valor: { type: DataTypes.TEXT, allowNull: false },
+  descripcion: DataTypes.TEXT,
+}, { tableName: 'parametros_sistema', schema: 'sgc', timestamps: true, createdAt: 'creado_en', updatedAt: 'modificado_en' });
+
+// ==========================================
 // RELACIONES
 // ==========================================
 Proceso.belongsTo(Macroproceso, { foreignKey: 'macroproceso_id', as: 'macroproceso' });
@@ -310,13 +396,39 @@ Documento.belongsTo(Proceso, { foreignKey: 'proceso_id', as: 'proceso' });
 Documento.belongsTo(TipoDocumento, { foreignKey: 'tipo_documento_id', as: 'tipo' });
 ActividadProceso.belongsTo(Proceso, { foreignKey: 'proceso_id', as: 'proceso' });
 
+// Relaciones Documento
+Documento.hasMany(VersionDocumento, { foreignKey: 'documento_id', as: 'versiones' });
+VersionDocumento.belongsTo(Documento, { foreignKey: 'documento_id', as: 'documento' });
+Documento.hasMany(AprobacionDocumento, { foreignKey: 'documento_id', as: 'aprobaciones' });
+AprobacionDocumento.belongsTo(Documento, { foreignKey: 'documento_id', as: 'documento' });
+AprobacionDocumento.belongsTo(Usuario, { as: 'aprobador', foreignKey: 'aprobador_id' });
+
+// Relaciones Flujo Trabajo
+FlujoTrabajo.belongsTo(Proceso, { foreignKey: 'proceso_id', as: 'proceso' });
+Proceso.hasMany(FlujoTrabajo, { foreignKey: 'proceso_id', as: 'flujos' });
+
 Hallazgo.belongsTo(PlanAuditoria, { foreignKey: 'plan_id', as: 'plan' });
 Hallazgo.belongsTo(Proceso, { as: 'area_proceso', foreignKey: 'area_proceso_id' });
+
+// Relaciones Equipo Auditoria
+EquipoAuditoria.belongsTo(PlanAuditoria, { foreignKey: 'plan_id', as: 'plan' });
+EquipoAuditoria.belongsTo(Usuario, { as: 'auditor', foreignKey: 'auditor_id' });
+PlanAuditoria.hasMany(EquipoAuditoria, { foreignKey: 'plan_id', as: 'equipo' });
 
 Capa.belongsTo(Hallazgo, { foreignKey: 'hallazgo_id', as: 'hallazgo' });
 Capa.belongsTo(Usuario, { as: 'responsable', foreignKey: 'responsable_id' });
 
+// Relaciones Seguimiento CAPA
+Capa.hasMany(SeguimientoCapa, { foreignKey: 'capa_id', as: 'seguimientos' });
+SeguimientoCapa.belongsTo(Capa, { foreignKey: 'capa_id', as: 'capa' });
+SeguimientoCapa.belongsTo(Usuario, { as: 'creadoPor', foreignKey: 'creado_por' });
+
+// Relaciones Riesgo y Plan Mitigacion
 Riesgo.belongsTo(Proceso, { foreignKey: 'proceso_id', as: 'proceso' });
+Riesgo.hasMany(PlanMitigacion, { foreignKey: 'riesgo_id', as: 'planesMitigacion' });
+PlanMitigacion.belongsTo(Riesgo, { foreignKey: 'riesgo_id', as: 'riesgo' });
+PlanMitigacion.belongsTo(Usuario, { as: 'responsable', foreignKey: 'responsable_id' });
+
 Indicador.belongsTo(Proceso, { foreignKey: 'proceso_id', as: 'proceso' });
 MedicionIndicador.belongsTo(Indicador, { foreignKey: 'indicador_id', as: 'indicador' });
 

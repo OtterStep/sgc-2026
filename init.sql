@@ -5,7 +5,6 @@
 -- ============================================================
 
 -- 1. EXTENSIONES
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- 2. ESQUEMA
@@ -17,7 +16,7 @@ SET search_path TO sgc;
 -- ============================================================
 
 CREATE TABLE usuarios (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     codigo VARCHAR(20) UNIQUE NOT NULL, -- Código institucional
     nombres VARCHAR(100) NOT NULL,
     apellidos VARCHAR(100) NOT NULL,
@@ -54,7 +53,7 @@ CREATE TABLE tipos_documento (
 );
 
 CREATE TABLE documentos (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     codigo VARCHAR(50) UNIQUE NOT NULL,
     titulo VARCHAR(255) NOT NULL,
     tipo_documento_id INTEGER NOT NULL REFERENCES tipos_documento(id),
@@ -75,7 +74,7 @@ CREATE INDEX idx_documentos_estado ON documentos(estado);
 CREATE INDEX idx_documentos_tipo ON documentos(tipo_documento_id);
 
 CREATE TABLE versiones_documento (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     documento_id UUID NOT NULL REFERENCES documentos(id) ON DELETE CASCADE,
     numero_version INTEGER NOT NULL,
     cambios_descripcion TEXT NOT NULL,
@@ -87,7 +86,7 @@ CREATE TABLE versiones_documento (
 );
 
 CREATE TABLE aprobaciones_documento (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     documento_id UUID NOT NULL REFERENCES documentos(id) ON DELETE CASCADE,
     version_id UUID REFERENCES versiones_documento(id),
     aprobador_id UUID NOT NULL REFERENCES usuarios(id),
@@ -101,7 +100,7 @@ CREATE TABLE aprobaciones_documento (
 -- ============================================================
 
 CREATE TABLE macroprocesos (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     codigo VARCHAR(20) UNIQUE NOT NULL,
     nombre VARCHAR(150) NOT NULL,
     descripcion TEXT,
@@ -114,7 +113,7 @@ CREATE TABLE macroprocesos (
 );
 
 CREATE TABLE procesos (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     macroproceso_id UUID REFERENCES macroprocesos(id),
     codigo VARCHAR(20) UNIQUE NOT NULL,
     nombre VARCHAR(150) NOT NULL,
@@ -129,7 +128,7 @@ CREATE TABLE procesos (
 );
 
 CREATE TABLE actividades_proceso (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     proceso_id UUID NOT NULL REFERENCES procesos(id) ON DELETE CASCADE,
     codigo VARCHAR(20) NOT NULL,
     nombre VARCHAR(200) NOT NULL,
@@ -146,7 +145,7 @@ CREATE TABLE actividades_proceso (
 );
 
 CREATE TABLE flujos_trabajo (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     proceso_id UUID NOT NULL REFERENCES procesos(id),
     nombre VARCHAR(150) NOT NULL,
     definicion_json JSONB NOT NULL, -- BPMN-like JSON
@@ -160,7 +159,7 @@ CREATE TABLE flujos_trabajo (
 -- ============================================================
 
 CREATE TABLE estandares_acreditacion (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     codigo VARCHAR(50) UNIQUE NOT NULL,
     nombre VARCHAR(200) NOT NULL,
     organizacion VARCHAR(100), -- SUNEDU, ISO 21001, etc.
@@ -172,7 +171,7 @@ CREATE TABLE estandares_acreditacion (
 );
 
 CREATE TABLE factores_criterio (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     estandar_id UUID NOT NULL REFERENCES estandares_acreditacion(id) ON DELETE CASCADE,
     codigo VARCHAR(20) NOT NULL,
     nombre VARCHAR(255) NOT NULL,
@@ -183,7 +182,7 @@ CREATE TABLE factores_criterio (
 );
 
 CREATE TABLE autoevaluaciones (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     estandar_id UUID NOT NULL REFERENCES estandares_acreditacion(id),
     periodo VARCHAR(20) NOT NULL, -- 2024-I, 2024-II
     fecha_inicio DATE NOT NULL,
@@ -195,7 +194,7 @@ CREATE TABLE autoevaluaciones (
 );
 
 CREATE TABLE evaluaciones_criterio (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     autoevaluacion_id UUID NOT NULL REFERENCES autoevaluaciones(id) ON DELETE CASCADE,
     factor_id UUID NOT NULL REFERENCES factores_criterio(id),
     cumplimiento VARCHAR(20) CHECK (cumplimiento IN ('cumple', 'cumple_parcial', 'no_cumple', 'no_aplica')),
@@ -213,7 +212,7 @@ CREATE TABLE evaluaciones_criterio (
 -- ============================================================
 
 CREATE TABLE planes_auditoria (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     codigo VARCHAR(50) UNIQUE NOT NULL,
     nombre VARCHAR(200) NOT NULL,
     tipo VARCHAR(30) CHECK (tipo IN ('interna', 'externa', 'especial')),
@@ -229,7 +228,7 @@ CREATE TABLE planes_auditoria (
 );
 
 CREATE TABLE equipos_auditoria (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     plan_id UUID NOT NULL REFERENCES planes_auditoria(id) ON DELETE CASCADE,
     auditor_id UUID NOT NULL REFERENCES usuarios(id),
     rol_en_equipo VARCHAR(30) CHECK (rol_en_equipo IN ('lider', 'auditor', 'observador')),
@@ -237,7 +236,7 @@ CREATE TABLE equipos_auditoria (
 );
 
 CREATE TABLE hallazgos (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     plan_id UUID NOT NULL REFERENCES planes_auditoria(id),
     tipo VARCHAR(30) CHECK (tipo IN ('no_conformidad', 'observacion', 'oportunidad_mejora')),
     descripcion TEXT NOT NULL,
@@ -256,7 +255,7 @@ CREATE TABLE hallazgos (
 -- ============================================================
 
 CREATE TABLE capas (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     codigo VARCHAR(50) UNIQUE NOT NULL,
     tipo VARCHAR(20) NOT NULL CHECK (tipo IN ('correctiva', 'preventiva', 'mejora')),
     hallazgo_id UUID REFERENCES hallazgos(id),
@@ -276,7 +275,7 @@ CREATE TABLE capas (
 );
 
 CREATE TABLE seguimientos_capa (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     capa_id UUID NOT NULL REFERENCES capas(id) ON DELETE CASCADE,
     fecha_seguimiento DATE NOT NULL,
     avance DECIMAL(5,2) CHECK (avance BETWEEN 0 AND 100),
@@ -290,7 +289,7 @@ CREATE TABLE seguimientos_capa (
 -- ============================================================
 
 CREATE TABLE riesgos (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     codigo VARCHAR(50) UNIQUE NOT NULL,
     nombre VARCHAR(200) NOT NULL,
     descripcion TEXT,
@@ -314,7 +313,7 @@ CREATE TABLE riesgos (
 );
 
 CREATE TABLE planes_mitigacion (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     riesgo_id UUID NOT NULL REFERENCES riesgos(id) ON DELETE CASCADE,
     descripcion TEXT NOT NULL,
     acciones TEXT,
@@ -331,7 +330,7 @@ CREATE TABLE planes_mitigacion (
 -- ============================================================
 
 CREATE TABLE indicadores (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     codigo VARCHAR(50) UNIQUE NOT NULL,
     nombre VARCHAR(200) NOT NULL,
     descripcion TEXT,
@@ -350,7 +349,7 @@ CREATE TABLE indicadores (
 );
 
 CREATE TABLE mediciones_indicador (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     indicador_id UUID NOT NULL REFERENCES indicadores(id) ON DELETE CASCADE,
     periodo VARCHAR(20) NOT NULL,
     valor_real DECIMAL(10,2),
@@ -366,7 +365,7 @@ CREATE TABLE mediciones_indicador (
 -- ============================================================
 
 CREATE TABLE encuestas (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     codigo VARCHAR(50) UNIQUE NOT NULL,
     titulo VARCHAR(255) NOT NULL,
     descripcion TEXT,
@@ -382,7 +381,7 @@ CREATE TABLE encuestas (
 );
 
 CREATE TABLE preguntas_encuesta (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     encuesta_id UUID NOT NULL REFERENCES encuestas(id) ON DELETE CASCADE,
     texto TEXT NOT NULL,
     tipo VARCHAR(30) CHECK (tipo IN ('likert_5', 'likert_7', 'si_no', 'multiple', 'abierta', 'numerica')),
@@ -392,7 +391,7 @@ CREATE TABLE preguntas_encuesta (
 );
 
 CREATE TABLE respuestas_encuesta (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     encuesta_id UUID NOT NULL REFERENCES encuestas(id),
     pregunta_id UUID NOT NULL REFERENCES preguntas_encuesta(id),
     usuario_id UUID REFERENCES usuarios(id), -- NULL si es anónima
@@ -428,7 +427,7 @@ INSERT INTO tipos_documento (codigo, nombre, descripcion, requiere_aprobacion) V
 ('FOR', 'Formato', 'Formatos y plantillas', FALSE);
 
 INSERT INTO usuarios (codigo, nombres, apellidos, correo, contrasena_hash, rol, facultad, escuela, activo) VALUES
-('ADM-001', 'Admin', 'SGC', 'admin@unitru.edu.pe', '$2a$10$Qj2z.E7cM9fJk3XpLwV0kex8P1nEq3iO3tLw6k6bV7P4w4z9n1HwO', 'admin', 'Ingeniería', 'Sistemas', TRUE);
+('ADM-001', 'Admin', 'SGC', 'admin@unitru.edu.pe', '$2a$10$WIJEFhvFbf5JcxVSHvevROXEIkk7EM6rFPfUIPQvyCoXfC.FxPjRm', 'admin', 'Ingeniería', 'Sistemas', TRUE);
 
 INSERT INTO parametros_sistema (clave, valor, descripcion) VALUES
 ('institucion_nombre', 'Universidad Nacional de Trujillo', 'Nombre de la institución'),
