@@ -3,6 +3,7 @@ import Sidebar from '@/components/layout/Sidebar';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { ClipboardList, Plus, Send, BarChart3 } from 'lucide-react';
+import { swalError, swalSuccess } from '@/lib/swal';
 
 export default function EncuestasPage() {
   const [encuestas, setEncuestas] = useState([]);
@@ -42,18 +43,19 @@ export default function EncuestasPage() {
         encuesta_id: encuestaActiva.id,
         respuestas: Object.entries(respuestas).map(([k, v]) => ({ pregunta_id: k, valor_numerico: typeof v === 'number' ? v : null, valor_texto: typeof v === 'string' ? v : null }))
       });
-      alert('Encuesta enviada correctamente');
+      swalSuccess('Encuesta enviada correctamente');
       setEncuestaActiva(null);
-    } catch (err) { alert('Error al enviar'); }
+    } catch (err) { swalError(err); }
   };
 
   const handleCrear = async (e) => {
     e.preventDefault();
     try {
       await axios.post('/api/v1/encuestas', nuevaEncuesta);
+      swalSuccess('Encuesta creada correctamente');
       setMostrarCrear(false);
       cargarEncuestas();
-    } catch (err) { alert('Error'); }
+    } catch (err) { swalError(err); }
   };
 
   const renderInput = (p) => {

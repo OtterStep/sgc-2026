@@ -1,5 +1,6 @@
 import { Riesgo, Proceso, PlanMitigacion } from '../models/index.js';
 import { generarPDF, plantillaReporte } from '../services/pdfService.js';
+import { formatError } from '../utils/errorHandler.js';
 
 export const listarRiesgos = async (req, res) => {
   try {
@@ -8,7 +9,7 @@ export const listarRiesgos = async (req, res) => {
     });
     res.json(data);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };
 
@@ -17,7 +18,7 @@ export const crearRiesgo = async (req, res) => {
     const r = await Riesgo.create({ ...req.body, creado_por: req.usuario.id });
     res.status(201).json(r);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };
 
@@ -27,7 +28,7 @@ export const listarPlanesMitigacion = async (req, res) => {
     const data = await PlanMitigacion.findAll({ where: { riesgo_id } });
     res.json(data);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };
 
@@ -36,7 +37,7 @@ export const crearPlanMitigacion = async (req, res) => {
     const p = await PlanMitigacion.create({ ...req.body, creado_por: req.usuario.id });
     res.status(201).json(p);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };
 
@@ -53,6 +54,6 @@ export const reporteRiesgos = async (req, res) => {
     res.set({ 'Content-Type': 'application/pdf', 'Content-Disposition': 'attachment; filename=riesgos.pdf' });
     res.send(pdf);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };

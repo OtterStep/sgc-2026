@@ -3,6 +3,7 @@ import Sidebar from '@/components/layout/Sidebar';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { GitBranch, Plus, Download, ChevronRight } from 'lucide-react';
+import { swalError, swalSuccess } from '@/lib/swal';
 
 export default function ProcesosPage() {
   const [macroprocesos, setMacroprocesos] = useState([]);
@@ -52,10 +53,11 @@ export default function ProcesosPage() {
     e.preventDefault();
     try {
       await axios.post('/api/v1/procesos', nuevoProceso);
+      swalSuccess('Proceso creado correctamente');
       setMostrarFormProc(false);
       cargarDatos();
     } catch (err) {
-      alert('Error al crear proceso');
+      swalError(err);
     }
   };
 
@@ -69,7 +71,7 @@ export default function ProcesosPage() {
       document.body.appendChild(link);
       link.click();
     } catch (err) {
-      alert('Error al generar PDF');
+      swalError(err);
     }
   };
 

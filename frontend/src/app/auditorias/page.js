@@ -3,6 +3,7 @@ import Sidebar from '@/components/layout/Sidebar';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Search, Plus, Download, AlertTriangle, CheckCircle } from 'lucide-react';
+import { swalError, swalSuccess } from '@/lib/swal';
 
 export default function AuditoriasPage() {
   const [planes, setPlanes] = useState([]);
@@ -35,8 +36,9 @@ export default function AuditoriasPage() {
     try {
       await axios.post('/api/v1/planes-auditoria', nuevoPlan);
       setNuevoPlan({ codigo: '', nombre: '', tipo: 'interna', fecha_programada: '' });
+      swalSuccess('Plan de auditoría creado correctamente');
       cargarDatos();
-    } catch (err) { alert('Error'); }
+    } catch (err) { swalError(err); }
   };
 
   const descargarReporte = async () => {
@@ -47,7 +49,7 @@ export default function AuditoriasPage() {
       link.href = url;
       link.setAttribute('download', 'auditorias.pdf');
       link.click();
-    } catch (err) { alert('Error PDF'); }
+    } catch (err) { swalError(err); }
   };
 
   const getIconoGravedad = (g) => {

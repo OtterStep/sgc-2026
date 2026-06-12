@@ -20,15 +20,26 @@ app.get('/health', (req, res) => res.json({ status: 'OK', timestamp: new Date(),
 
 const PORT = process.env.PORT || 3001;
 
-const iniciar = async () => {
-  try {
-    await sequelize.authenticate();
-    console.log('✅ PostgreSQL conectado');
-    app.listen(PORT, () => console.log(`🚀 SGC Backend en puerto ${PORT}`));
-  } catch (err) {
-    console.error('❌ Error:', err);
-    process.exit(1);
+const esperarDB = async (intentos = 10, intervalo = 3000) => {
+  for (let i = 1; i <= intentos; i++) {
+    try {
+      await sequelize.authenticate();
+      console.log('✅ PostgreSQL conectado');
+      return;
+    } catch (err) {
+      console.log(`⏳ Intento ${i}/${intentos} - PostgreSQL no disponible, reintentando en ${intervalo / 1000}s...`);
+      if (i === intentos) {
+        console.error('❌ Error al conectar con PostgreSQL:', err.message);
+        process.exit(1);
+      }
+      await new Promise(r => setTimeout(r, intervalo));
+    }
   }
+};
+
+const iniciar = async () => {
+  await esperarDB();
+  app.listen(PORT, () => console.log(`🚀 SGC Backend en puerto ${PORT}`));
 };
 
 iniciar();

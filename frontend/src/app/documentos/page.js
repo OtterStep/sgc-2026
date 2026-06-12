@@ -3,6 +3,7 @@ import Sidebar from '@/components/layout/Sidebar';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FileText, Download, Plus, Search } from 'lucide-react';
+import { swalError } from '@/lib/swal';
 
 export default function DocumentosPage() {
   const [documentos, setDocumentos] = useState([]);
@@ -35,7 +36,7 @@ export default function DocumentosPage() {
       document.body.appendChild(link);
       link.click();
     } catch (err) {
-      alert('Error al generar PDF');
+      swalError(err);
     }
   };
 

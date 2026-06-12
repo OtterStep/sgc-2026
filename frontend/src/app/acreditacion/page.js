@@ -3,6 +3,7 @@ import Sidebar from '@/components/layout/Sidebar';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Award, Plus, Download, CheckCircle } from 'lucide-react';
+import { swalError, swalSuccess } from '@/lib/swal';
 
 export default function AcreditacionPage() {
   const [estandares, setEstandares] = useState([]);
@@ -36,8 +37,9 @@ export default function AcreditacionPage() {
     try {
       await axios.post('/api/v1/estandares', nuevoEstandar);
       setNuevoEstandar({ codigo: '', nombre: '', organizacion: '' });
+      swalSuccess('Estándar registrado correctamente');
       cargarDatos();
-    } catch (err) { alert('Error'); }
+    } catch (err) { swalError(err); }
   };
 
   const descargarReporte = async () => {
@@ -48,7 +50,7 @@ export default function AcreditacionPage() {
       link.href = url;
       link.setAttribute('download', 'acreditacion.pdf');
       link.click();
-    } catch (err) { alert('Error PDF'); }
+    } catch (err) { swalError(err); }
   };
 
   return (

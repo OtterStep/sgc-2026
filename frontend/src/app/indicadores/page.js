@@ -3,6 +3,7 @@ import Sidebar from '@/components/layout/Sidebar';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { BarChart3, Plus, Download, TrendingUp } from 'lucide-react';
+import { swalError, swalSuccess } from '@/lib/swal';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 
 export default function IndicadoresPage() {
@@ -44,9 +45,10 @@ export default function IndicadoresPage() {
     e.preventDefault();
     try {
       await axios.post('/api/v1/indicadores', nuevoIndicador);
+      swalSuccess('Indicador creado correctamente');
       setMostrarForm(false);
       cargarIndicadores();
-    } catch (err) { alert('Error'); }
+    } catch (err) { swalError(err); }
   };
 
   const descargarReporte = async () => {
@@ -57,7 +59,7 @@ export default function IndicadoresPage() {
       link.href = url;
       link.setAttribute('download', 'indicadores.pdf');
       link.click();
-    } catch (err) { alert('Error PDF'); }
+    } catch (err) { swalError(err); }
   };
 
   return (

@@ -1,5 +1,6 @@
 import { Capa, Hallazgo, Usuario } from '../models/index.js';
 import { generarPDF, plantillaReporte } from '../services/pdfService.js';
+import { formatError } from '../utils/errorHandler.js';
 
 export const listarCapas = async (req, res) => {
   try {
@@ -11,7 +12,7 @@ export const listarCapas = async (req, res) => {
     });
     res.json(capas);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };
 
@@ -23,7 +24,7 @@ export const crearCapa = async (req, res) => {
     });
     res.status(201).json(capa);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };
 
@@ -34,7 +35,7 @@ export const actualizarEstadoCapa = async (req, res) => {
     await Capa.update({ estado, efectividad, modificado_por: req.usuario.id }, { where: { id } });
     res.json({ mensaje: 'CAPA actualizada correctamente' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };
 
@@ -51,6 +52,6 @@ export const reporteCapa = async (req, res) => {
     res.set({ 'Content-Type': 'application/pdf', 'Content-Disposition': 'attachment; filename=capa.pdf' });
     res.send(pdf);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };

@@ -1,12 +1,13 @@
 import { EstandarAcreditacion, FactorCriterio, Autoevaluacion, EvaluacionCriterio } from '../models/index.js';
 import { generarPDF, plantillaReporte } from '../services/pdfService.js';
+import { formatError } from '../utils/errorHandler.js';
 
 export const listarEstandares = async (req, res) => {
   try {
     const data = await EstandarAcreditacion.findAll();
     res.json(data);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };
 
@@ -15,7 +16,7 @@ export const crearEstandar = async (req, res) => {
     const e = await EstandarAcreditacion.create({ ...req.body, creado_por: req.usuario.id });
     res.status(201).json(e);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };
 
@@ -25,7 +26,7 @@ export const listarFactores = async (req, res) => {
     const data = await FactorCriterio.findAll({ where: { estandar_id } });
     res.json(data);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };
 
@@ -34,7 +35,7 @@ export const crearFactor = async (req, res) => {
     const f = await FactorCriterio.create({ ...req.body, creado_por: req.usuario.id });
     res.status(201).json(f);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };
 
@@ -45,7 +46,7 @@ export const listarAutoevaluaciones = async (req, res) => {
     });
     res.json(data);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };
 
@@ -54,7 +55,7 @@ export const crearAutoevaluacion = async (req, res) => {
     const a = await Autoevaluacion.create({ ...req.body, creado_por: req.usuario.id });
     res.status(201).json(a);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };
 
@@ -63,7 +64,7 @@ export const evaluarCriterio = async (req, res) => {
     const e = await EvaluacionCriterio.create({ ...req.body, creado_por: req.usuario.id });
     res.status(201).json(e);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };
 
@@ -84,6 +85,6 @@ export const reporteAcreditacion = async (req, res) => {
     res.set({ 'Content-Type': 'application/pdf', 'Content-Disposition': 'attachment; filename=acreditacion.pdf' });
     res.send(pdf);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };

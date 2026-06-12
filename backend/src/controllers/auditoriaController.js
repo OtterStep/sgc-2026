@@ -1,5 +1,6 @@
 import { PlanAuditoria, Hallazgo, Usuario } from '../models/index.js';
 import { generarPDF, plantillaReporte } from '../services/pdfService.js';
+import { formatError } from '../utils/errorHandler.js';
 
 export const listarPlanes = async (req, res) => {
   try {
@@ -8,7 +9,7 @@ export const listarPlanes = async (req, res) => {
     });
     res.json(data);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };
 
@@ -17,7 +18,7 @@ export const crearPlan = async (req, res) => {
     const p = await PlanAuditoria.create({ ...req.body, creado_por: req.usuario.id });
     res.status(201).json(p);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };
 
@@ -34,7 +35,7 @@ export const listarHallazgos = async (req, res) => {
     });
     res.json(data);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };
 
@@ -43,7 +44,7 @@ export const crearHallazgo = async (req, res) => {
     const h = await Hallazgo.create({ ...req.body, creado_por: req.usuario.id });
     res.status(201).json(h);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };
 
@@ -53,7 +54,7 @@ export const actualizarHallazgo = async (req, res) => {
     await Hallazgo.update({ ...req.body, modificado_por: req.usuario.id }, { where: { id } });
     res.json({ mensaje: 'Hallazgo actualizado' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };
 
@@ -71,6 +72,6 @@ export const reporteAuditoria = async (req, res) => {
     res.set({ 'Content-Type': 'application/pdf', 'Content-Disposition': 'attachment; filename=auditorias.pdf' });
     res.send(pdf);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };

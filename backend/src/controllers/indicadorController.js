@@ -1,5 +1,6 @@
 import { Indicador, MedicionIndicador, Proceso } from '../models/index.js';
 import { generarPDF, plantillaReporte } from '../services/pdfService.js';
+import { formatError } from '../utils/errorHandler.js';
 
 export const listarIndicadores = async (req, res) => {
   try {
@@ -8,7 +9,7 @@ export const listarIndicadores = async (req, res) => {
     });
     res.json(data);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };
 
@@ -17,7 +18,7 @@ export const crearIndicador = async (req, res) => {
     const i = await Indicador.create({ ...req.body, creado_por: req.usuario.id });
     res.status(201).json(i);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };
 
@@ -30,7 +31,7 @@ export const listarMediciones = async (req, res) => {
     });
     res.json(data);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };
 
@@ -44,7 +45,7 @@ export const registrarMedicion = async (req, res) => {
     });
     res.status(201).json(m);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };
 
@@ -60,6 +61,6 @@ export const reporteIndicadores = async (req, res) => {
     res.set({ 'Content-Type': 'application/pdf', 'Content-Disposition': 'attachment; filename=indicadores.pdf' });
     res.send(pdf);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };

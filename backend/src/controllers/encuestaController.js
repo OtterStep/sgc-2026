@@ -1,4 +1,5 @@
 import { Encuesta, PreguntaEncuesta, RespuestaEncuesta } from '../models/index.js';
+import { formatError } from '../utils/errorHandler.js';
 
 export const listarEncuestas = async (req, res) => {
   try {
@@ -8,7 +9,7 @@ export const listarEncuestas = async (req, res) => {
     });
     res.json(data);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };
 
@@ -47,7 +48,7 @@ export const crearEncuesta = async (req, res) => {
 
     res.status(201).json(encuestaCompleta);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };
 
@@ -71,7 +72,7 @@ export const enviarRespuesta = async (req, res) => {
     await RespuestaEncuesta.bulkCreate(respuestasData);
     res.status(201).json({ mensaje: 'Respuestas registradas con éxito' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };
 
@@ -97,6 +98,6 @@ export const obtenerResultados = async (req, res) => {
       respuestas
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };

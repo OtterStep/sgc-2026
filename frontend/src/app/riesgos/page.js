@@ -3,6 +3,7 @@ import Sidebar from '@/components/layout/Sidebar';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Activity, Plus, Download, AlertTriangle } from 'lucide-react';
+import { swalError, swalSuccess } from '@/lib/swal';
 
 export default function RiesgosPage() {
   const [riesgos, setRiesgos] = useState([]);
@@ -35,9 +36,10 @@ export default function RiesgosPage() {
     e.preventDefault();
     try {
       await axios.post('/api/v1/riesgos', nuevoRiesgo);
+      swalSuccess('Riesgo registrado correctamente');
       setMostrarForm(false);
       cargarRiesgos();
-    } catch (err) { alert('Error'); }
+    } catch (err) { swalError(err); }
   };
 
   const descargarReporte = async () => {
@@ -48,7 +50,7 @@ export default function RiesgosPage() {
       link.href = url;
       link.setAttribute('download', 'riesgos.pdf');
       link.click();
-    } catch (err) { alert('Error PDF'); }
+    } catch (err) { swalError(err); }
   };
 
   return (

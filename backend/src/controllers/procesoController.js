@@ -1,5 +1,6 @@
 import { Proceso, Macroproceso, ActividadProceso, Usuario } from '../models/index.js';
 import { generarPDF, plantillaReporte } from '../services/pdfService.js';
+import { formatError } from '../utils/errorHandler.js';
 
 export const listarMacroprocesos = async (req, res) => {
   try {
@@ -8,7 +9,7 @@ export const listarMacroprocesos = async (req, res) => {
     });
     res.json(data);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };
 
@@ -17,7 +18,7 @@ export const crearMacroproceso = async (req, res) => {
     const mp = await Macroproceso.create({ ...req.body, creado_por: req.usuario.id });
     res.status(201).json(mp);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };
 
@@ -31,7 +32,7 @@ export const listarProcesos = async (req, res) => {
     });
     res.json(data);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };
 
@@ -40,7 +41,7 @@ export const crearProceso = async (req, res) => {
     const p = await Proceso.create({ ...req.body, creado_por: req.usuario.id });
     res.status(201).json(p);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };
 
@@ -54,7 +55,7 @@ export const listarActividades = async (req, res) => {
     });
     res.json(data);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };
 
@@ -63,7 +64,7 @@ export const crearActividad = async (req, res) => {
     const a = await ActividadProceso.create({ ...req.body, creado_por: req.usuario.id });
     res.status(201).json(a);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };
 
@@ -81,6 +82,6 @@ export const reporteMapaProcesos = async (req, res) => {
     res.set({ 'Content-Type': 'application/pdf', 'Content-Disposition': 'attachment; filename=mapa-procesos.pdf' });
     res.send(pdf);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };

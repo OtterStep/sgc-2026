@@ -3,6 +3,7 @@ import Sidebar from '@/components/layout/Sidebar';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { ShieldAlert, CheckCircle, Clock, AlertTriangle } from 'lucide-react';
+import { swalError, swalSuccess } from '@/lib/swal';
 
 export default function CapasPage() {
   const [capas, setCapas] = useState([]);
@@ -28,10 +29,11 @@ export default function CapasPage() {
     e.preventDefault();
     try {
       await axios.post('/api/v1/capas', nuevaCapa);
+      swalSuccess('CAPA registrada correctamente');
       cargarCapas();
       setNuevaCapa({ codigo: '', tipo: 'correctiva', descripcion: '', accion_propuesta: '', responsable_id: '' });
     } catch (err) {
-      alert('Error al registrar CAPA');
+      swalError(err);
     }
   };
 

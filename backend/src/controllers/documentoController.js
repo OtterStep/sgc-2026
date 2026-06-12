@@ -2,6 +2,7 @@ import { Documento, Usuario } from '../models/index.js';
 import { generarPDF, plantillaReporte } from '../services/pdfService.js';
 import { dispararWebhook } from '../services/n8nService.js';
 import { validationResult } from 'express-validator';
+import { formatError } from '../utils/errorHandler.js';
 
 export const listarDocumentos = async (req, res) => {
   try {
@@ -11,7 +12,7 @@ export const listarDocumentos = async (req, res) => {
     });
     res.json(docs);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };
 
@@ -27,7 +28,7 @@ export const crearDocumento = async (req, res) => {
     await dispararWebhook('notificar-documento', { accion: 'creado', documento: doc.codigo });
     res.status(201).json(doc);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };
 
@@ -55,6 +56,6 @@ export const generarReporteDocumentos = async (req, res) => {
     res.set({ 'Content-Type': 'application/pdf', 'Content-Disposition': 'attachment; filename=documentos.pdf' });
     res.send(pdf);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };

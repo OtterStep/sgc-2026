@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { Usuario } from '../models/index.js';
+import { formatError } from '../utils/errorHandler.js';
 
 export const registrar = async (req, res) => {
   try {
@@ -15,7 +16,7 @@ export const registrar = async (req, res) => {
     });
     res.status(201).json({ id: usuario.id, mensaje: 'Usuario registrado' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };
 
@@ -37,7 +38,7 @@ export const login = async (req, res) => {
     );
     res.json({ token, usuario: { id: usuario.id, nombres: usuario.nombres, apellidos: usuario.apellidos, rol: usuario.rol } });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };
 
@@ -48,6 +49,6 @@ export const perfil = async (req, res) => {
     });
     res.json(usuario);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: formatError(err) });
   }
 };
