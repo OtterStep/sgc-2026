@@ -1,6 +1,6 @@
 import { PlanAuditoria, Hallazgo, Usuario } from '../models/index.js';
 import { generarPDF, plantillaReporte } from '../services/pdfService.js';
-import { formatError } from '../utils/errorHandler.js';
+import { formatError, prepareCreateData } from '../utils/errorHandler.js';
 
 export const listarPlanes = async (req, res) => {
   try {
@@ -15,7 +15,8 @@ export const listarPlanes = async (req, res) => {
 
 export const crearPlan = async (req, res) => {
   try {
-    const p = await PlanAuditoria.create({ ...req.body, creado_por: req.usuario.id });
+    const data = prepareCreateData(req.body, ['lider_id']);
+    const p = await PlanAuditoria.create({ ...data, creado_por: req.usuario.id });
     res.status(201).json(p);
   } catch (err) {
     res.status(500).json({ error: formatError(err) });
@@ -41,7 +42,8 @@ export const listarHallazgos = async (req, res) => {
 
 export const crearHallazgo = async (req, res) => {
   try {
-    const h = await Hallazgo.create({ ...req.body, creado_por: req.usuario.id });
+    const data = prepareCreateData(req.body, ['plan_id', 'area_proceso_id']);
+    const h = await Hallazgo.create({ ...data, creado_por: req.usuario.id });
     res.status(201).json(h);
   } catch (err) {
     res.status(500).json({ error: formatError(err) });

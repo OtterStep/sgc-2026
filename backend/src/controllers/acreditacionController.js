@@ -1,6 +1,6 @@
 import { EstandarAcreditacion, FactorCriterio, Autoevaluacion, EvaluacionCriterio } from '../models/index.js';
 import { generarPDF, plantillaReporte } from '../services/pdfService.js';
-import { formatError } from '../utils/errorHandler.js';
+import { formatError, prepareCreateData } from '../utils/errorHandler.js';
 
 export const listarEstandares = async (req, res) => {
   try {
@@ -32,7 +32,8 @@ export const listarFactores = async (req, res) => {
 
 export const crearFactor = async (req, res) => {
   try {
-    const f = await FactorCriterio.create({ ...req.body, creado_por: req.usuario.id });
+    const data = prepareCreateData(req.body, ['estandar_id']);
+    const f = await FactorCriterio.create({ ...data, creado_por: req.usuario.id });
     res.status(201).json(f);
   } catch (err) {
     res.status(500).json({ error: formatError(err) });
@@ -52,7 +53,8 @@ export const listarAutoevaluaciones = async (req, res) => {
 
 export const crearAutoevaluacion = async (req, res) => {
   try {
-    const a = await Autoevaluacion.create({ ...req.body, creado_por: req.usuario.id });
+    const data = prepareCreateData(req.body, ['estandar_id']);
+    const a = await Autoevaluacion.create({ ...data, creado_por: req.usuario.id });
     res.status(201).json(a);
   } catch (err) {
     res.status(500).json({ error: formatError(err) });
@@ -61,7 +63,8 @@ export const crearAutoevaluacion = async (req, res) => {
 
 export const evaluarCriterio = async (req, res) => {
   try {
-    const e = await EvaluacionCriterio.create({ ...req.body, creado_por: req.usuario.id });
+    const data = prepareCreateData(req.body, ['autoevaluacion_id', 'factor_id']);
+    const e = await EvaluacionCriterio.create({ ...data, creado_por: req.usuario.id });
     res.status(201).json(e);
   } catch (err) {
     res.status(500).json({ error: formatError(err) });

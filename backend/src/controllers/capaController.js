@@ -1,6 +1,6 @@
 import { Capa, Hallazgo, Usuario } from '../models/index.js';
 import { generarPDF, plantillaReporte } from '../services/pdfService.js';
-import { formatError } from '../utils/errorHandler.js';
+import { formatError, prepareCreateData } from '../utils/errorHandler.js';
 
 export const listarCapas = async (req, res) => {
   try {
@@ -18,8 +18,9 @@ export const listarCapas = async (req, res) => {
 
 export const crearCapa = async (req, res) => {
   try {
+    const data = prepareCreateData(req.body, ['hallazgo_id', 'responsable_id']);
     const capa = await Capa.create({
-      ...req.body,
+      ...data,
       creado_por: req.usuario.id,
     });
     res.status(201).json(capa);

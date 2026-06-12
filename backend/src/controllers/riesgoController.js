@@ -1,6 +1,6 @@
 import { Riesgo, Proceso, PlanMitigacion } from '../models/index.js';
 import { generarPDF, plantillaReporte } from '../services/pdfService.js';
-import { formatError } from '../utils/errorHandler.js';
+import { formatError, prepareCreateData } from '../utils/errorHandler.js';
 
 export const listarRiesgos = async (req, res) => {
   try {
@@ -15,7 +15,8 @@ export const listarRiesgos = async (req, res) => {
 
 export const crearRiesgo = async (req, res) => {
   try {
-    const r = await Riesgo.create({ ...req.body, creado_por: req.usuario.id });
+    const data = prepareCreateData(req.body, ['proceso_id']);
+    const r = await Riesgo.create({ ...data, creado_por: req.usuario.id });
     res.status(201).json(r);
   } catch (err) {
     res.status(500).json({ error: formatError(err) });
@@ -34,7 +35,8 @@ export const listarPlanesMitigacion = async (req, res) => {
 
 export const crearPlanMitigacion = async (req, res) => {
   try {
-    const p = await PlanMitigacion.create({ ...req.body, creado_por: req.usuario.id });
+    const data = prepareCreateData(req.body, ['riesgo_id', 'responsable_id']);
+    const p = await PlanMitigacion.create({ ...data, creado_por: req.usuario.id });
     res.status(201).json(p);
   } catch (err) {
     res.status(500).json({ error: formatError(err) });

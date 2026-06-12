@@ -2,7 +2,7 @@ import { Documento, Usuario } from '../models/index.js';
 import { generarPDF, plantillaReporte } from '../services/pdfService.js';
 import { dispararWebhook } from '../services/n8nService.js';
 import { validationResult } from 'express-validator';
-import { formatError } from '../utils/errorHandler.js';
+import { formatError, prepareCreateData } from '../utils/errorHandler.js';
 
 export const listarDocumentos = async (req, res) => {
   try {
@@ -21,8 +21,9 @@ export const crearDocumento = async (req, res) => {
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
   try {
+    const data = prepareCreateData(req.body, ['proceso_id']);
     const doc = await Documento.create({
-      ...req.body,
+      ...data,
       creado_por: req.usuario.id,
     });
     await dispararWebhook('notificar-documento', { accion: 'creado', documento: doc.codigo });

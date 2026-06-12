@@ -1,6 +1,6 @@
 import { Proceso, Macroproceso, ActividadProceso, Usuario } from '../models/index.js';
 import { generarPDF, plantillaReporte } from '../services/pdfService.js';
-import { formatError } from '../utils/errorHandler.js';
+import { formatError, prepareCreateData } from '../utils/errorHandler.js';
 
 export const listarMacroprocesos = async (req, res) => {
   try {
@@ -15,7 +15,8 @@ export const listarMacroprocesos = async (req, res) => {
 
 export const crearMacroproceso = async (req, res) => {
   try {
-    const mp = await Macroproceso.create({ ...req.body, creado_por: req.usuario.id });
+    const data = prepareCreateData(req.body, ['responsable_id']);
+    const mp = await Macroproceso.create({ ...data, creado_por: req.usuario.id });
     res.status(201).json(mp);
   } catch (err) {
     res.status(500).json({ error: formatError(err) });
@@ -38,7 +39,8 @@ export const listarProcesos = async (req, res) => {
 
 export const crearProceso = async (req, res) => {
   try {
-    const p = await Proceso.create({ ...req.body, creado_por: req.usuario.id });
+    const data = prepareCreateData(req.body, ['macroproceso_id', 'responsable_id']);
+    const p = await Proceso.create({ ...data, creado_por: req.usuario.id });
     res.status(201).json(p);
   } catch (err) {
     res.status(500).json({ error: formatError(err) });
@@ -61,7 +63,8 @@ export const listarActividades = async (req, res) => {
 
 export const crearActividad = async (req, res) => {
   try {
-    const a = await ActividadProceso.create({ ...req.body, creado_por: req.usuario.id });
+    const data = prepareCreateData(req.body, ['proceso_id', 'responsable_id']);
+    const a = await ActividadProceso.create({ ...data, creado_por: req.usuario.id });
     res.status(201).json(a);
   } catch (err) {
     res.status(500).json({ error: formatError(err) });

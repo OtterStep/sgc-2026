@@ -1,6 +1,6 @@
 import { Indicador, MedicionIndicador, Proceso } from '../models/index.js';
 import { generarPDF, plantillaReporte } from '../services/pdfService.js';
-import { formatError } from '../utils/errorHandler.js';
+import { formatError, prepareCreateData } from '../utils/errorHandler.js';
 
 export const listarIndicadores = async (req, res) => {
   try {
@@ -15,7 +15,8 @@ export const listarIndicadores = async (req, res) => {
 
 export const crearIndicador = async (req, res) => {
   try {
-    const i = await Indicador.create({ ...req.body, creado_por: req.usuario.id });
+    const data = prepareCreateData(req.body, ['proceso_id']);
+    const i = await Indicador.create({ ...data, creado_por: req.usuario.id });
     res.status(201).json(i);
   } catch (err) {
     res.status(500).json({ error: formatError(err) });
@@ -37,10 +38,11 @@ export const listarMediciones = async (req, res) => {
 
 export const registrarMedicion = async (req, res) => {
   try {
-    const { indicador_id, periodo, valor_real, valor_esperado } = req.body;
-    const cumplimiento = valor_esperado ? ((valor_real / valor_esperado) * 100).toFixed(2) : null;
+    const data = prepareCreateData(req.body, ['indicador_id']);
+    const cumplimiento = data.valor_esperado ? ((data.valor_real / data.valor_esperado) * 100).toFixed(2) : null;
     const m = await MedicionIndicador.create({
-      indicador_id, periodo, valor_real, valor_esperado, cumplimiento,
+      ...data,
+      cumplimiento,
       creado_por: req.usuario.id,
     });
     res.status(201).json(m);
