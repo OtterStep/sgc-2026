@@ -2,110 +2,95 @@
 import Sidebar from '@/components/layout/Sidebar';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { FileText, Download, Plus, Search, Edit, Eye, Archive } from 'lucide-react';
+import { GitBranch, Plus, Search, Edit, Eye, EyeOff } from 'lucide-react';
 import { swalError, swalSuccess, swalConfirm } from '@/lib/swal';
 
-export default function DocumentosPage() {
-  const [documentos, setDocumentos] = useState([]);
+export default function MacroprocesosPage() {
+  const [macroprocesos, setMacroprocesos] = useState([]);
   const [filtro, setFiltro] = useState('');
   const [mostrarModal, setMostrarModal] = useState(false);
   const [mostrarModalVer, setMostrarModalVer] = useState(false);
-  const [tipos, setTipos] = useState([]);
-  const [nuevoDoc, setNuevoDoc] = useState({
+  const [nuevoMP, setNuevoMP] = useState({
     codigo: '',
-    titulo: '',
-    tipo_documento_id: '',
-    contenido: '',
-    fecha_vigencia: ''
+    nombre: '',
+    descripcion: '',
+    tipo: '',
+    responsable_id: ''
   });
-  const [docSeleccionado, setDocSeleccionado] = useState(null);
+  const [mpSeleccionado, setMpSeleccionado] = useState(null);
   const [modoEdicion, setModoEdicion] = useState(false);
+  const [usuarios, setUsuarios] = useState([]);
 
   useEffect(() => {
-    cargarDocumentos();
-    cargarTipos();
+    cargarMacroprocesos();
+    cargarUsuarios();
   }, []);
 
-  const cargarDocumentos = async () => {
+  const cargarMacroprocesos = async () => {
     try {
-      const { data } = await axios.get('/api/v1/documentos');
-      setDocumentos(data);
+      const { data } = await axios.get('/api/v1/macroprocesos');
+      setMacroprocesos(data);
     } catch (err) {
       // Datos de demostración
-      setDocumentos([
-        { id: '1', codigo: 'POL-001', titulo: 'Política de Calidad Institucional', estado: 'aprobado', version_actual: 3, creado_en: '2024-01-15' },
-        { id: '2', codigo: 'MAN-002', titulo: 'Manual de Gestión de Procesos', estado: 'en_revision', version_actual: 2, creado_en: '2024-02-20' },
+      setMacroprocesos([
+        { id: '1', codigo: 'MP-001', nombre: 'Gestión Académica', tipo: 'misional', estado: 'activo', descripcion: 'Gestión de procesos académicos de la universidad', creado_en: '2024-01-15' },
+        { id: '2', codigo: 'MP-002', nombre: 'Gestión Administrativa', tipo: 'apoyo', estado: 'activo', descripcion: 'Gestión de procesos administrativos', creado_en: '2024-02-20' },
       ]);
     }
   };
 
-  const cargarTipos = async () => {
+  const cargarUsuarios = async () => {
     try {
-      const { data } = await axios.get('/api/v1/tipos-documento');
-      setTipos(data);
-      if (data.length > 0) {
-        setNuevoDoc(prev => ({ ...prev, tipo_documento_id: data[0].id.toString() }));
-      }
+      const { data } = await axios.get('/api/v1/auth/usuarios');
+      setUsuarios(data);
     } catch (err) {
-      const fallbackTipos = [
-        { id: 1, nombre: 'Política', codigo: 'POL' },
-        { id: 2, nombre: 'Manual', codigo: 'MAN' },
-        { id: 3, nombre: 'Procedimiento', codigo: 'PRO' },
-        { id: 4, nombre: 'Instructivo', codigo: 'INS' },
-        { id: 5, nombre: 'Formato', codigo: 'FOR' }
-      ];
-      setTipos(fallbackTipos);
-      setNuevoDoc(prev => ({ ...prev, tipo_documento_id: '1' }));
+      console.error(err);
     }
   };
 
-  const handleCrearDocumento = async (e) => {
+  const handleGuardar = async (e) => {
     e.preventDefault();
     try {
-      const payload = {
-        ...nuevoDoc,
-        tipo_documento_id: parseInt(nuevoDoc.tipo_documento_id, 10)
-      };
-      if (modoEdicion && docSeleccionado) {
-        await axios.put(`/api/v1/documentos/${docSeleccionado.id}`, payload);
-        swalSuccess('Documento actualizado correctamente');
+      if (modoEdicion && mpSeleccionado) {
+        await axios.put(`/api/v1/macroprocesos/${mpSeleccionado.id}`, nuevoMP);
+        swalSuccess('Macroproceso actualizado correctamente');
       } else {
-        await axios.post('/api/v1/documentos', payload);
-        swalSuccess('Documento registrado correctamente');
+        await axios.post('/api/v1/macroprocesos', nuevoMP);
+        swalSuccess('Macroproceso registrado correctamente');
       }
       setMostrarModal(false);
       resetFormulario();
-      cargarDocumentos();
+      cargarMacroprocesos();
     } catch (err) {
       swalError(err);
     }
   };
 
-  const handleEditar = (doc) => {
-    setDocSeleccionado(doc);
-    setNuevoDoc({
-      codigo: doc.codigo,
-      titulo: doc.titulo,
-      tipo_documento_id: doc.tipo_documento_id.toString(),
-      contenido: doc.contenido || '',
-      fecha_vigencia: doc.fecha_vigencia || ''
+  const handleEditar = (mp) => {
+    setMpSeleccionado(mp);
+    setNuevoMP({
+      codigo: mp.codigo,
+      nombre: mp.nombre,
+      descripcion: mp.descripcion || '',
+      tipo: mp.tipo || '',
+      responsable_id: mp.responsable_id?.toString() || ''
     });
     setModoEdicion(true);
     setMostrarModal(true);
   };
 
-  const handleVer = (doc) => {
-    setDocSeleccionado(doc);
+  const handleVer = (mp) => {
+    setMpSeleccionado(mp);
     setMostrarModalVer(true);
   };
 
-  const handleArchivar = async (doc) => {
-    const result = await swalConfirm('¿Estás seguro de archivar este documento?');
-    if (result.isConfirmed) {
+  const handleDesactivar = async (mp) => {
+    const confirmado = await swalConfirm('¿Estás seguro de desactivar este macroproceso?');
+    if (confirmado) {
       try {
-        await axios.patch(`/api/v1/documentos/${doc.id}/archivar`);
-        swalSuccess('Documento archivado correctamente');
-        cargarDocumentos();
+        await axios.patch(`/api/v1/macroprocesos/${mp.id}/desactivar`);
+        swalSuccess('Macroproceso desactivado correctamente');
+        cargarMacroprocesos();
       } catch (err) {
         swalError(err);
       }
@@ -113,14 +98,14 @@ export default function DocumentosPage() {
   };
 
   const resetFormulario = () => {
-    setNuevoDoc({
+    setNuevoMP({
       codigo: '',
-      titulo: '',
-      tipo_documento_id: tipos[0]?.id?.toString() || '1',
-      contenido: '',
-      fecha_vigencia: ''
+      nombre: '',
+      descripcion: '',
+      tipo: '',
+      responsable_id: ''
     });
-    setDocSeleccionado(null);
+    setMpSeleccionado(null);
     setModoEdicion(false);
   };
 
@@ -129,23 +114,9 @@ export default function DocumentosPage() {
     setMostrarModal(true);
   };
 
-  const descargarReporte = async () => {
-    try {
-      const response = await axios.get('/api/v1/documentos/reporte', { responseType: 'blob' });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', 'reporte-documentos.pdf');
-      document.body.appendChild(link);
-      link.click();
-    } catch (err) {
-      swalError(err);
-    }
-  };
-
-  const filtrados = documentos.filter(d =>
-    d.titulo.toLowerCase().includes(filtro.toLowerCase()) ||
-    d.codigo.toLowerCase().includes(filtro.toLowerCase())
+  const filtrados = macroprocesos.filter(mp =>
+    mp.nombre.toLowerCase().includes(filtro.toLowerCase()) ||
+    mp.codigo.toLowerCase().includes(filtro.toLowerCase())
   );
 
   return (
@@ -153,18 +124,13 @@ export default function DocumentosPage() {
       <Sidebar />
       <main className="flex-1 p-8">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-slate-800">Gestión Documental</h2>
-          <div className="flex gap-3">
-            <button onClick={descargarReporte} className="flex items-center gap-2 px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-800">
-              <Download size={18} /> Reporte PDF
-            </button>
-            <button 
-              onClick={abrirModalNuevo}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              <Plus size={18} /> Nuevo Documento
-            </button>
-          </div>
+          <h2 className="text-2xl font-bold text-slate-800">Macroprocesos</h2>
+          <button 
+            onClick={abrirModalNuevo}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            <Plus size={18} /> Nuevo Macroproceso
+          </button>
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-slate-200">
@@ -173,7 +139,7 @@ export default function DocumentosPage() {
               <Search className="absolute left-3 top-3 text-slate-400" size={18} />
               <input
                 type="text"
-                placeholder="Buscar por código o título..."
+                placeholder="Buscar por código o nombre..."
                 className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-900"
                 value={filtro}
                 onChange={(e) => setFiltro(e.target.value)}
@@ -186,55 +152,52 @@ export default function DocumentosPage() {
               <thead className="bg-slate-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Código</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Título</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Nombre</th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Tipo</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Responsable</th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Estado</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Versión</th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
-                {filtrados.map((doc) => (
-                  <tr key={doc.id} className="hover:bg-slate-50">
-                    <td className="px-6 py-4 text-sm font-medium text-slate-900">{doc.codigo}</td>
-                    <td className="px-6 py-4 text-sm text-slate-600">{doc.titulo}</td>
-                    <td className="px-6 py-4 text-sm text-slate-600">{doc.tipo?.nombre || '-'}</td>
+                {filtrados.map((mp) => (
+                  <tr key={mp.id} className="hover:bg-slate-50">
+                    <td className="px-6 py-4 text-sm font-medium text-slate-900">{mp.codigo}</td>
+                    <td className="px-6 py-4 text-sm text-slate-600">{mp.nombre}</td>
+                    <td className="px-6 py-4 text-sm text-slate-600 capitalize">{mp.tipo}</td>
+                    <td className="px-6 py-4 text-sm text-slate-600">{mp.responsable?.nombres} {mp.responsable?.apellidos || '-'}</td>
                     <td className="px-6 py-4">
                       <span className={`px-2 py-1 text-xs rounded-full ${
-                        doc.estado === 'aprobado' ? 'bg-green-100 text-green-700' :
-                        doc.estado === 'en_revision' ? 'bg-amber-100 text-amber-700' :
-                        doc.estado === 'archivado' ? 'bg-slate-200 text-slate-700' :
-                        'bg-blue-100 text-blue-700'
+                        mp.estado === 'activo' ? 'bg-green-100 text-green-700' : 'bg-slate-200 text-slate-700'
                       }`}>
-                        {doc.estado}
+                        {mp.estado}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-slate-600">v{doc.version_actual}</td>
                     <td className="px-6 py-4">
                       <div className="flex gap-2">
                         <button 
-                          onClick={() => handleVer(doc)} 
+                          onClick={() => handleVer(mp)} 
                           className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg"
-                          title="Ver"
+                          title="Ver detalles"
                         >
                           <Eye size={16} />
                         </button>
-                        {doc.estado !== 'archivado' && (
+                        {mp.estado === 'activo' && (
                           <button 
-                            onClick={() => handleEditar(doc)} 
+                            onClick={() => handleEditar(mp)} 
                             className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg"
                             title="Editar"
                           >
                             <Edit size={16} />
                           </button>
                         )}
-                        {doc.estado !== 'archivado' && (
+                        {mp.estado === 'activo' && (
                           <button 
-                            onClick={() => handleArchivar(doc)} 
-                            className="p-1.5 text-slate-600 hover:bg-slate-50 rounded-lg"
-                            title="Archivar"
+                            onClick={() => handleDesactivar(mp)} 
+                            className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg"
+                            title="Desactivar"
                           >
-                            <Archive size={16} />
+                            <EyeOff size={16} />
                           </button>
                         )}
                       </div>
@@ -252,8 +215,8 @@ export default function DocumentosPage() {
             <div className="bg-white rounded-2xl shadow-xl max-w-xl w-full border border-slate-100 overflow-hidden">
               <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
                 <h3 className="font-semibold text-slate-800 text-lg flex items-center gap-2">
-                  <FileText className="text-blue-600" size={20} /> 
-                  {modoEdicion ? 'Editar Documento' : 'Registrar Nuevo Documento'}
+                  <GitBranch className="text-blue-600" size={20} /> 
+                  {modoEdicion ? 'Editar Macroproceso' : 'Registrar Macroproceso'}
                 </h3>
                 <button 
                   onClick={() => setMostrarModal(false)}
@@ -262,16 +225,16 @@ export default function DocumentosPage() {
                   &times;
                 </button>
               </div>
-              <form onSubmit={handleCrearDocumento} className="p-6 space-y-4">
+              <form onSubmit={handleGuardar} className="p-6 space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Código</label>
                     <input
                       type="text"
-                      placeholder="Ej. POL-001"
+                      placeholder="Ej. MP-001"
                       className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-900"
-                      value={nuevoDoc.codigo}
-                      onChange={(e) => setNuevoDoc({ ...nuevoDoc, codigo: e.target.value })}
+                      value={nuevoMP.codigo}
+                      onChange={(e) => setNuevoMP({ ...nuevoMP, codigo: e.target.value })}
                       required
                     />
                   </div>
@@ -279,51 +242,53 @@ export default function DocumentosPage() {
                     <label className="block text-sm font-medium text-slate-700 mb-1">Tipo</label>
                     <select
                       className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-slate-900"
-                      value={nuevoDoc.tipo_documento_id}
-                      onChange={(e) => setNuevoDoc({ ...nuevoDoc, tipo_documento_id: e.target.value })}
+                      value={nuevoMP.tipo}
+                      onChange={(e) => setNuevoMP({ ...nuevoMP, tipo: e.target.value })}
                       required
                     >
-                      {tipos.map((t) => (
-                        <option key={t.id} value={t.id}>
-                          {t.nombre}
-                        </option>
-                      ))}
+                      <option value="">Seleccionar tipo</option>
+                      <option value="estrategico">Estratégico</option>
+                      <option value="misional">Misional</option>
+                      <option value="apoyo">Apoyo</option>
+                      <option value="evaluacion">Evaluación</option>
                     </select>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Título</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Nombre</label>
                   <input
                     type="text"
-                    placeholder="Título descriptivo del documento"
+                    placeholder="Nombre del macroproceso"
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-900"
-                    value={nuevoDoc.titulo}
-                    onChange={(e) => setNuevoDoc({ ...nuevoDoc, titulo: e.target.value })}
+                    value={nuevoMP.nombre}
+                    onChange={(e) => setNuevoMP({ ...nuevoMP, nombre: e.target.value })}
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Fecha de vigencia</label>
-                  <input
-                    type="date"
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Responsable</label>
+                  <select
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-slate-900"
-                    value={nuevoDoc.fecha_vigencia}
-                    onChange={(e) => setNuevoDoc({ ...nuevoDoc, fecha_vigencia: e.target.value })}
-                    required
-                  />
+                    value={nuevoMP.responsable_id}
+                    onChange={(e) => setNuevoMP({ ...nuevoMP, responsable_id: e.target.value })}
+                  >
+                    <option value="">Sin responsable</option>
+                    {usuarios.map((u) => (
+                      <option key={u.id} value={u.id}>{u.nombres} {u.apellidos}</option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Contenido / Descripción</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Descripción</label>
                   <textarea
-                    placeholder="Escriba el texto del documento o una descripción detallada..."
+                    placeholder="Descripción del macroproceso..."
                     rows={4}
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-900"
-                    value={nuevoDoc.contenido}
-                    onChange={(e) => setNuevoDoc({ ...nuevoDoc, contenido: e.target.value })}
-                    required
+                    value={nuevoMP.descripcion}
+                    onChange={(e) => setNuevoMP({ ...nuevoMP, descripcion: e.target.value })}
                   />
                 </div>
 
@@ -348,13 +313,13 @@ export default function DocumentosPage() {
         )}
 
         {/* Modal Ver */}
-        {mostrarModalVer && docSeleccionado && (
+        {mostrarModalVer && mpSeleccionado && (
           <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full border border-slate-100 overflow-hidden">
               <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
                 <h3 className="font-semibold text-slate-800 text-lg flex items-center gap-2">
-                  <FileText className="text-blue-600" size={20} /> 
-                  Detalles del Documento
+                  <GitBranch className="text-blue-600" size={20} /> 
+                  Detalles del Macroproceso
                 </h3>
                 <button 
                   onClick={() => setMostrarModalVer(false)}
@@ -367,47 +332,38 @@ export default function DocumentosPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <span className="text-sm text-slate-500 font-medium">Código</span>
-                    <p className="text-slate-800 font-semibold">{docSeleccionado.codigo}</p>
+                    <p className="text-slate-800 font-semibold">{mpSeleccionado.codigo}</p>
                   </div>
                   <div>
                     <span className="text-sm text-slate-500 font-medium">Tipo</span>
-                    <p className="text-slate-800">{docSeleccionado.tipo?.nombre || '-'}</p>
+                    <p className="text-slate-800 capitalize">{mpSeleccionado.tipo}</p>
                   </div>
                 </div>
                 <div>
-                  <span className="text-sm text-slate-500 font-medium">Título</span>
-                  <p className="text-slate-800">{docSeleccionado.titulo}</p>
+                  <span className="text-sm text-slate-500 font-medium">Nombre</span>
+                  <p className="text-slate-800">{mpSeleccionado.nombre}</p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <span className="text-sm text-slate-500 font-medium">Responsable</span>
+                    <p className="text-slate-800">{mpSeleccionado.responsable?.nombres} {mpSeleccionado.responsable?.apellidos || '-'}</p>
+                  </div>
                   <div>
                     <span className="text-sm text-slate-500 font-medium">Estado</span>
                     <p className="text-slate-800">
                       <span className={`px-2 py-1 text-xs rounded-full ${
-                        docSeleccionado.estado === 'aprobado' ? 'bg-green-100 text-green-700' :
-                        docSeleccionado.estado === 'en_revision' ? 'bg-amber-100 text-amber-700' :
-                        docSeleccionado.estado === 'archivado' ? 'bg-slate-200 text-slate-700' :
-                        'bg-blue-100 text-blue-700'
+                        mpSeleccionado.estado === 'activo' ? 'bg-green-100 text-green-700' : 'bg-slate-200 text-slate-700'
                       }`}>
-                        {docSeleccionado.estado}
+                        {mpSeleccionado.estado}
                       </span>
                     </p>
                   </div>
-                  <div>
-                    <span className="text-sm text-slate-500 font-medium">Versión</span>
-                    <p className="text-slate-800">v{docSeleccionado.version_actual}</p>
-                  </div>
                 </div>
-                {docSeleccionado.fecha_vigencia && (
+                {mpSeleccionado.descripcion && (
                   <div>
-                    <span className="text-sm text-slate-500 font-medium">Fecha de Vigencia</span>
-                    <p className="text-slate-800">{new Date(docSeleccionado.fecha_vigencia).toLocaleDateString('es-PE')}</p>
-                  </div>
-                )}
-                {docSeleccionado.contenido && (
-                  <div>
-                    <span className="text-sm text-slate-500 font-medium">Contenido</span>
+                    <span className="text-sm text-slate-500 font-medium">Descripción</span>
                     <div className="mt-1 p-4 bg-slate-50 rounded-lg text-slate-700 whitespace-pre-wrap">
-                      {docSeleccionado.contenido}
+                      {mpSeleccionado.descripcion}
                     </div>
                   </div>
                 )}

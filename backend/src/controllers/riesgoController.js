@@ -48,14 +48,17 @@ export const reporteRiesgos = async (req, res) => {
     const riesgos = await Riesgo.findAll({ include: [{ model: Proceso, as: 'proceso' }] });
     let html = '<table><tr><th>Código</th><th>Nombre</th><th>Categoría</th><th>Nivel</th><th>Prob</th><th>Imp</th><th>Estado</th></tr>';
     riesgos.forEach(r => {
-      const nivel = (r.probabilidad * r.impacto) <= 4 ? 'Bajo' : (r.probabilidad * r.impacto) <= 9 ? 'Medio' : (r.probabilidad * r.impacto) <= 14 ? 'Alto' : 'Crítico';
-      html += `<tr><td>${r.codigo}</td><td>${r.nombre}</td><td>${r.categoria}</td><td>${nivel}</td><td>${r.probabilidad}</td><td>${r.impacto}</td><td>${r.estado}</td></tr>`;
+      const prob = r.probabilidad || 0;
+      const imp = r.impacto || 0;
+      const nivel = (prob * imp) <= 4 ? 'Bajo' : (prob * imp) <= 9 ? 'Medio' : (prob * imp) <= 14 ? 'Alto' : 'Crítico';
+      html += `<tr><td>${r.codigo || '-'}</td><td>${r.nombre || '-'}</td><td>${r.categoria || '-'}</td><td>${nivel}</td><td>${prob}</td><td>${imp}</td><td>${r.estado || '-'}</td></tr>`;
     });
     html += '</table>';
     const pdf = await generarPDF(plantillaReporte('Reporte de Gestión de Riesgos', html));
     res.set({ 'Content-Type': 'application/pdf', 'Content-Disposition': 'attachment; filename=riesgos.pdf' });
     res.send(pdf);
   } catch (err) {
+    console.error('Error en reporteRiesgos:', err);
     res.status(500).json({ error: formatError(err) });
   }
 };

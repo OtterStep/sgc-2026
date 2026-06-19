@@ -4,6 +4,20 @@ import axios from 'axios';
 
 axios.defaults.baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
+// Interceptor para inyectar dinámicamente el token en cada petición Axios
+axios.interceptors.request.use(
+  (config) => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('sgc_token') : null;
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {

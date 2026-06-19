@@ -10,6 +10,7 @@ import {
 const menuItems = [
   { href: '/dashboard', label: 'Dashboard', icon: Home },
   { href: '/documentos', label: 'Gestión Documental', icon: FileText },
+  { href: '/macroprocesos', label: 'Macroprocesos', icon: GitBranch },
   { href: '/procesos', label: 'Mapa de Procesos', icon: GitBranch },
   { href: '/acreditacion', label: 'Acreditación', icon: Award },
   { href: '/auditorias', label: 'Auditorías', icon: Search },

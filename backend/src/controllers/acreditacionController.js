@@ -76,18 +76,18 @@ export const reporteAcreditacion = async (req, res) => {
     const autoevaluaciones = await Autoevaluacion.findAll({
       include: [
         { model: EstandarAcreditacion, as: 'estandar' },
-        { model: EvaluacionCriterio, as: 'evaluaciones', include: [{ model: FactorCriterio, as: 'factor' }] },
       ],
     });
     let html = '<table><tr><th>Periodo</th><th>Estandar</th><th>Estado</th><th>Puntaje</th></tr>';
     autoevaluaciones.forEach(a => {
-      html += `<tr><td>${a.periodo}</td><td>${a.estandar?.nombre}</td><td>${a.estado}</td><td>${a.puntaje_total || '-'}</td></tr>`;
+      html += `<tr><td>${a.periodo || '-'}</td><td>${a.estandar?.nombre || '-'}</td><td>${a.estado || '-'}</td><td>${a.puntaje_total || '-'}</td></tr>`;
     });
     html += '</table>';
     const pdf = await generarPDF(plantillaReporte('Reporte de Acreditación y Autoevaluación', html));
     res.set({ 'Content-Type': 'application/pdf', 'Content-Disposition': 'attachment; filename=acreditacion.pdf' });
     res.send(pdf);
   } catch (err) {
+    console.error('Error en reporteAcreditacion:', err);
     res.status(500).json({ error: formatError(err) });
   }
 };

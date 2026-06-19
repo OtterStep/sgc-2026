@@ -53,8 +53,28 @@ export const crearHallazgo = async (req, res) => {
 export const actualizarHallazgo = async (req, res) => {
   try {
     const { id } = req.params;
-    await Hallazgo.update({ ...req.body, modificado_por: req.usuario.id }, { where: { id } });
+    const h = await Hallazgo.findByPk(id);
+    if (!h) {
+      return res.status(404).json({ error: 'Hallazgo no encontrado' });
+    }
+    const data = prepareCreateData(req.body, ['plan_id', 'area_proceso_id']);
+    await h.update({ ...data, modificado_por: req.usuario.id });
     res.json({ mensaje: 'Hallazgo actualizado' });
+  } catch (err) {
+    res.status(500).json({ error: formatError(err) });
+  }
+};
+
+export const cerrarHallazgo = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const h = await Hallazgo.findByPk(id);
+    if (!h) {
+      return res.status(404).json({ error: 'Hallazgo no encontrado' });
+    }
+    const fechaHoy = new Date().toISOString().split('T')[0];
+    await h.update({ estado: 'cerrado', fecha_cierre: fechaHoy, modificado_por: req.usuario.id });
+    res.json({ mensaje: 'Hallazgo cerrado correctamente' });
   } catch (err) {
     res.status(500).json({ error: formatError(err) });
   }
@@ -62,18 +82,17 @@ export const actualizarHallazgo = async (req, res) => {
 
 export const reporteAuditoria = async (req, res) => {
   try {
-    const planes = await PlanAuditoria.findAll({
-      include: [{ model: Hallazgo, as: 'hallazgos' }],
-    });
-    let html = '<table><tr><th>Código</th><th>Nombre</th><th>Tipo</th><th>Estado</th><th>Hallazgos</th></tr>';
+    const planes = await PlanAuditoria.findAll();
+    let html = '<table><tr><th>Código</th><th>Nombre</th><th>Tipo</th><th>Estado</th></tr>';
     planes.forEach(p => {
-      html += `<tr><td>${p.codigo}</td><td>${p.nombre}</td><td>${p.tipo}</td><td>${p.estado}</td><td>${p.hallazgos?.length || 0}</td></tr>`;
+      html += `<tr><td>${p.codigo || '-'}</td><td>${p.nombre || '-'}</td><td>${p.tipo || '-'}</td><td>${p.estado || '-'}</td></tr>`;
     });
     html += '</table>';
     const pdf = await generarPDF(plantillaReporte('Reporte de Auditorías e Inspecciones', html));
     res.set({ 'Content-Type': 'application/pdf', 'Content-Disposition': 'attachment; filename=auditorias.pdf' });
     res.send(pdf);
   } catch (err) {
+    console.error('Error en reporteAuditoria:', err);
     res.status(500).json({ error: formatError(err) });
   }
 };

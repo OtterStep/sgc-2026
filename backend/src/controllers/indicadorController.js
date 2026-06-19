@@ -56,13 +56,14 @@ export const reporteIndicadores = async (req, res) => {
     const indicadores = await Indicador.findAll({ include: [{ model: Proceso, as: 'proceso' }] });
     let html = '<table><tr><th>Código</th><th>Nombre</th><th>Proceso</th><th>Tipo</th><th>Meta</th><th>Estado</th></tr>';
     indicadores.forEach(i => {
-      html += `<tr><td>${i.codigo}</td><td>${i.nombre}</td><td>${i.proceso?.nombre || '-'}</td><td>${i.tipo}</td><td>${i.meta || '-'}</td><td>${i.estado}</td></tr>`;
+      html += `<tr><td>${i.codigo || '-'}</td><td>${i.nombre || '-'}</td><td>${i.proceso?.nombre || '-'}</td><td>${i.tipo || '-'}</td><td>${i.meta || '-'}</td><td>${i.estado || '-'}</td></tr>`;
     });
     html += '</table>';
     const pdf = await generarPDF(plantillaReporte('Reporte de Indicadores de Gestión', html));
     res.set({ 'Content-Type': 'application/pdf', 'Content-Disposition': 'attachment; filename=indicadores.pdf' });
     res.send(pdf);
   } catch (err) {
+    console.error('Error en reporteIndicadores:', err);
     res.status(500).json({ error: formatError(err) });
   }
 };

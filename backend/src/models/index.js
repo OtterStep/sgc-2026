@@ -89,6 +89,7 @@ export const Macroproceso = sequelize.define('macroprocesos', {
   descripcion: DataTypes.TEXT,
   responsable_id: DataTypes.UUID,
   tipo: DataTypes.STRING(30),
+  estado: { type: DataTypes.BOOLEAN, defaultValue: true },
   creado_por: DataTypes.UUID,
   modificado_por: DataTypes.UUID,
 }, { tableName: 'macroprocesos', schema: 'sgc', timestamps: true, createdAt: 'creado_en', updatedAt: 'modificado_en' });
@@ -390,8 +391,10 @@ export const ParametroSistema = sequelize.define('parametros_sistema', {
 // ==========================================
 // RELACIONES
 // ==========================================
+Macroproceso.belongsTo(Usuario, { as: 'responsable', foreignKey: 'responsable_id' });
 Proceso.belongsTo(Macroproceso, { foreignKey: 'macroproceso_id', as: 'macroproceso' });
 Proceso.belongsTo(Usuario, { as: 'responsable', foreignKey: 'responsable_id' });
+Proceso.hasMany(ActividadProceso, { foreignKey: 'proceso_id', as: 'actividades' });
 Documento.belongsTo(Proceso, { foreignKey: 'proceso_id', as: 'proceso' });
 Documento.belongsTo(TipoDocumento, { foreignKey: 'tipo_documento_id', as: 'tipo' });
 ActividadProceso.belongsTo(Proceso, { foreignKey: 'proceso_id', as: 'proceso' });
@@ -407,6 +410,8 @@ AprobacionDocumento.belongsTo(Usuario, { as: 'aprobador', foreignKey: 'aprobador
 FlujoTrabajo.belongsTo(Proceso, { foreignKey: 'proceso_id', as: 'proceso' });
 Proceso.hasMany(FlujoTrabajo, { foreignKey: 'proceso_id', as: 'flujos' });
 
+PlanAuditoria.belongsTo(Usuario, { as: 'lider', foreignKey: 'lider_id' });
+PlanAuditoria.hasMany(Hallazgo, { foreignKey: 'plan_id', as: 'hallazgos' });
 Hallazgo.belongsTo(PlanAuditoria, { foreignKey: 'plan_id', as: 'plan' });
 Hallazgo.belongsTo(Proceso, { as: 'area_proceso', foreignKey: 'area_proceso_id' });
 
@@ -442,10 +447,7 @@ RespuestaEncuesta.belongsTo(PreguntaEncuesta, { foreignKey: 'pregunta_id', as: '
 
 // Relaciones adicionales requeridas por controladores
 Documento.belongsTo(Usuario, { as: 'creadoPor', foreignKey: 'creado_por' });
-PlanAuditoria.belongsTo(Usuario, { as: 'lider', foreignKey: 'lider_id' });
-PlanAuditoria.hasMany(Hallazgo, { foreignKey: 'plan_id', as: 'hallazgos' });
 Hallazgo.belongsTo(Usuario, { as: 'creadoPor', foreignKey: 'creado_por' });
 Autoevaluacion.hasMany(EvaluacionCriterio, { foreignKey: 'autoevaluacion_id', as: 'evaluaciones' });
-Proceso.hasMany(ActividadProceso, { foreignKey: 'proceso_id', as: 'actividades' });
 ActividadProceso.belongsTo(Usuario, { as: 'responsable', foreignKey: 'responsable_id' });
 Encuesta.hasMany(PreguntaEncuesta, { foreignKey: 'encuesta_id', as: 'preguntas' });

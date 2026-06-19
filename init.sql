@@ -106,6 +106,7 @@ CREATE TABLE macroprocesos (
     descripcion TEXT,
     responsable_id UUID REFERENCES usuarios(id),
     tipo VARCHAR(30) CHECK (tipo IN ('estrategico', 'misional', 'apoyo', 'evaluacion')),
+    estado BOOLEAN DEFAULT TRUE,
     creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     modificado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     creado_por UUID REFERENCES usuarios(id),

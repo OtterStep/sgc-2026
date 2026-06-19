@@ -17,17 +17,28 @@ const router = Router();
 router.post('/auth/registrar', authCtrl.registrar);
 router.post('/auth/login', authCtrl.login);
 router.get('/auth/perfil', verificarToken, authCtrl.perfil);
+router.get('/auth/usuarios', verificarToken, authCtrl.listarUsuarios);
 
 // Documentos
 router.get('/documentos', verificarToken, docCtrl.listarDocumentos);
+router.get('/documentos/:id', verificarToken, docCtrl.obtenerDocumentoPorId);
 router.post('/documentos', verificarToken, verificarRol(['admin', 'gestor_calidad']), docCtrl.crearDocumento);
+router.put('/documentos/:id', verificarToken, verificarRol(['admin', 'gestor_calidad']), docCtrl.actualizarDocumento);
+router.patch('/documentos/:id/archivar', verificarToken, verificarRol(['admin', 'gestor_calidad']), docCtrl.archivarDocumento);
 router.get('/documentos/reporte', verificarToken, docCtrl.generarReporteDocumentos);
+router.get('/tipos-documento', verificarToken, docCtrl.listarTiposDocumento);
 
 // Procesos (Mapa de Procesos)
 router.get('/macroprocesos', verificarToken, procCtrl.listarMacroprocesos);
+router.get('/macroprocesos/:id', verificarToken, procCtrl.obtenerMacroprocesoPorId);
 router.post('/macroprocesos', verificarToken, verificarRol(['admin', 'gestor_calidad']), procCtrl.crearMacroproceso);
+router.put('/macroprocesos/:id', verificarToken, verificarRol(['admin', 'gestor_calidad']), procCtrl.actualizarMacroproceso);
+router.patch('/macroprocesos/:id/desactivar', verificarToken, verificarRol(['admin', 'gestor_calidad']), procCtrl.desactivarMacroproceso);
 router.get('/procesos', verificarToken, procCtrl.listarProcesos);
+router.get('/procesos/:id', verificarToken, procCtrl.obtenerProcesoPorId);
 router.post('/procesos', verificarToken, verificarRol(['admin', 'gestor_calidad']), procCtrl.crearProceso);
+router.put('/procesos/:id', verificarToken, verificarRol(['admin', 'gestor_calidad']), procCtrl.actualizarProceso);
+router.patch('/procesos/:id/desactivar', verificarToken, verificarRol(['admin', 'gestor_calidad']), procCtrl.desactivarProceso);
 router.get('/procesos/:proceso_id/actividades', verificarToken, procCtrl.listarActividades);
 router.post('/actividades', verificarToken, verificarRol(['admin', 'gestor_calidad']), procCtrl.crearActividad);
 router.get('/procesos/reporte', verificarToken, procCtrl.reporteMapaProcesos);
@@ -48,12 +59,16 @@ router.post('/planes-auditoria', verificarToken, verificarRol(['admin', 'gestor_
 router.get('/hallazgos', verificarToken, audCtrl.listarHallazgos);
 router.post('/hallazgos', verificarToken, verificarRol(['admin', 'auditor']), audCtrl.crearHallazgo);
 router.patch('/hallazgos/:id', verificarToken, audCtrl.actualizarHallazgo);
+router.patch('/hallazgos/:id/cerrar', verificarToken, audCtrl.cerrarHallazgo);
 router.get('/auditorias/reporte', verificarToken, audCtrl.reporteAuditoria);
 
 // CAPA
 router.get('/capas', verificarToken, capaCtrl.listarCapas);
+router.get('/capas/:id', verificarToken, capaCtrl.obtenerCapa);
 router.post('/capas', verificarToken, verificarRol(['admin', 'gestor_calidad', 'auditor']), capaCtrl.crearCapa);
+router.put('/capas/:id', verificarToken, verificarRol(['admin', 'gestor_calidad']), capaCtrl.actualizarCapa);
 router.patch('/capas/:id/estado', verificarToken, capaCtrl.actualizarEstadoCapa);
+router.delete('/capas/:id', verificarToken, verificarRol(['admin', 'gestor_calidad']), capaCtrl.eliminarCapa);
 router.get('/capas/reporte', verificarToken, capaCtrl.reporteCapa);
 
 // Riesgos
