@@ -1,5 +1,5 @@
 import { Riesgo, Proceso, PlanMitigacion } from '../models/index.js';
-import { generarPDF, plantillaReporte } from '../services/pdfService.js';
+import { generarPDF } from '../services/pdfService.js';
 import { formatError, prepareCreateData } from '../utils/errorHandler.js';
 
 export const listarRiesgos = async (req, res) => {
@@ -46,15 +46,26 @@ export const crearPlanMitigacion = async (req, res) => {
 export const reporteRiesgos = async (req, res) => {
   try {
     const riesgos = await Riesgo.findAll({ include: [{ model: Proceso, as: 'proceso' }] });
-    let html = '<table><tr><th>Código</th><th>Nombre</th><th>Categoría</th><th>Nivel</th><th>Prob</th><th>Imp</th><th>Estado</th></tr>';
-    riesgos.forEach(r => {
+    const filas = riesgos.map(r => {
       const prob = r.probabilidad || 0;
       const imp = r.impacto || 0;
       const nivel = (prob * imp) <= 4 ? 'Bajo' : (prob * imp) <= 9 ? 'Medio' : (prob * imp) <= 14 ? 'Alto' : 'Crítico';
-      html += `<tr><td>${r.codigo || '-'}</td><td>${r.nombre || '-'}</td><td>${r.categoria || '-'}</td><td>${nivel}</td><td>${prob}</td><td>${imp}</td><td>${r.estado || '-'}</td></tr>`;
+
+      return [
+        r.codigo || '-',
+        r.nombre || '-',
+        r.categoria || '-',
+        nivel,
+        prob,
+        imp,
+        r.estado || '-',
+      ];
     });
-    html += '</table>';
-    const pdf = await generarPDF(plantillaReporte('Reporte de Gestión de Riesgos', html));
+    const pdf = await generarPDF({
+      titulo: 'Reporte de Gestión de Riesgos',
+      columnas: ['Código', 'Nombre', 'Categoría', 'Nivel', 'Prob', 'Imp', 'Estado'],
+      filas,
+    });
     res.set({ 'Content-Type': 'application/pdf', 'Content-Disposition': 'attachment; filename=riesgos.pdf' });
     res.send(pdf);
   } catch (err) {

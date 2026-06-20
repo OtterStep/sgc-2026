@@ -1,46 +1,147 @@
-import puppeteer from 'puppeteer';
+import PDFDocument from 'pdfkit';
 
-export const generarPDF = async (htmlContent, opciones = {}) => {
-  const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox'] });
-  const page = await browser.newPage();
-  await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
-  const pdf = await page.pdf({
-    format: 'A4',
-    printBackground: true,
-    margin: { top: '20px', right: '20px', bottom: '20px', left: '20px' },
-    ...opciones,
-  });
-  await browser.close();
-  return pdf;
+const MARGIN = 40;
+const BORDER_COLOR = '#D1D5DB';
+const HEADER_BG = '#003366';
+const HEADER_TEXT = '#FFFFFF';
+const TITLE_COLOR = '#111827';
+const SUBTITLE_COLOR = '#4B5563';
+
+const normalizarValor = (valor) => (valor === null || valor === undefined || valor === '' ? '-' : String(valor));
+
+const calcularAnchoColumnas = (columnas, anchoDisponible) => {
+  if (!columnas.length) {
+    return [];
+  }
+
+  const anchoBase = anchoDisponible / columnas.length;
+  return columnas.map(() => anchoBase);
 };
 
-export const plantillaReporte = (titulo, contenido, institucion = 'Universidad Nacional de Trujillo') => `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <style>
-    body { font-family: Arial, sans-serif; margin: 40px; color: #333; }
-    .header { text-align: center; border-bottom: 3px solid #003366; padding-bottom: 10px; margin-bottom: 20px; }
-    .header h1 { color: #003366; margin: 0; font-size: 18px; }
-    .header h2 { color: #666; margin: 5px 0; font-size: 14px; }
-    .content { font-size: 12px; line-height: 1.6; }
-    table { width: 100%; border-collapse: collapse; margin: 15px 0; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 11px; }
-    th { background-color: #003366; color: white; }
-    .footer { margin-top: 30px; font-size: 10px; color: #666; text-align: center; border-top: 1px solid #ddd; padding-top: 10px; }
-  </style>
-</head>
-<body>
-  <div class="header">
-    <h1>${institucion}</h1>
-    <h2>Sistema de Gestión de la Calidad</h2>
-    <h2>${titulo}</h2>
-  </div>
-  <div class="content">${contenido}</div>
-  <div class="footer">
-    Documento generado el ${new Date().toLocaleString('es-PE')} | SGC-UNT v1.0
-  </div>
-</body>
-</html>
-`;
+const dibujarEncabezado = (doc, titulo, institucion) => {
+  const anchoPagina = doc.page.width - (MARGIN * 2);
+
+  doc.fillColor(TITLE_COLOR).fontSize(18).text(institucion, MARGIN, MARGIN, {
+    align: 'center',
+    width: anchoPagina,
+  });
+
+  doc.fillColor(SUBTITLE_COLOR).fontSize(13).text('Sistema de Gestión de la Calidad', {
+    align: 'center',
+  });
+
+  doc.moveDown(0.4);
+
+  doc.fillColor(TITLE_COLOR).fontSize(15).text(titulo, {
+    align: 'center',
+  });
+
+  doc.moveDown(1);
+};
+
+const dibujarCabeceraTabla = (doc, columnas, xInicial, yInicial, anchos, altura) => {
+  let x = xInicial;
+
+  columnas.forEach((columna, indice) => {
+    doc.save();
+    doc.rect(x, yInicial, anchos[indice], altura).fillAndStroke(HEADER_BG, BORDER_COLOR);
+    doc.fillColor(HEADER_TEXT).fontSize(10).text(columna, x + 4, yInicial + 6, {
+      width: anchos[indice] - 8,
+      align: 'left',
+    });
+    doc.restore();
+    x += anchos[indice];
+  });
+};
+
+const dibujarFila = (doc, fila, xInicial, yInicial, anchos, altura) => {
+  let x = xInicial;
+
+  fila.forEach((valor, indice) => {
+    doc.save();
+    doc.rect(x, yInicial, anchos[indice], altura).strokeColor(BORDER_COLOR).stroke();
+    doc.fillColor('#111827').fontSize(10).text(normalizarValor(valor), x + 4, yInicial + 5, {
+      width: anchos[indice] - 8,
+      height: altura - 10,
+      align: 'left',
+    });
+    doc.restore();
+    x += anchos[indice];
+  });
+};
+
+export const generarPDF = async ({
+  titulo,
+  institucion = 'Universidad Nacional de Trujillo',
+  columnas = [],
+  filas = [],
+}) => {
+  return new Promise((resolve, reject) => {
+    try {
+      const doc = new PDFDocument({
+        size: 'A4',
+        layout: columnas.length > 5 ? 'landscape' : 'portrait',
+        margin: MARGIN,
+        bufferPages: true,
+      });
+
+      const buffers = [];
+
+      doc.on('data', buffers.push.bind(buffers));
+      doc.on('end', () => {
+        resolve(Buffer.concat(buffers));
+      });
+
+      const anchoDisponible = doc.page.width - (MARGIN * 2);
+      const anchosColumnas = calcularAnchoColumnas(columnas, anchoDisponible);
+      const xTabla = MARGIN;
+      const alturaCabecera = 24;
+      let y = 0;
+
+      dibujarEncabezado(doc, titulo, institucion);
+      y = doc.y + 4;
+
+      if (!columnas.length || !filas.length) {
+        doc.fillColor('#111827').fontSize(11).text('No hay datos disponibles para generar el reporte.', MARGIN, y);
+        doc.end();
+        return;
+      }
+
+      dibujarCabeceraTabla(doc, columnas, xTabla, y, anchosColumnas, alturaCabecera);
+      y += alturaCabecera;
+
+      filas.forEach((fila) => {
+        const alturaFila = Math.max(
+          24,
+          ...fila.map((valor, indice) => doc.heightOfString(normalizarValor(valor), {
+            width: anchosColumnas[indice] - 8,
+            align: 'left',
+          }))
+        ) + 10;
+
+        if (y + alturaFila > doc.page.height - MARGIN - 30) {
+          doc.addPage();
+          dibujarEncabezado(doc, titulo, institucion);
+          y = doc.y + 4;
+          dibujarCabeceraTabla(doc, columnas, xTabla, y, anchosColumnas, alturaCabecera);
+          y += alturaCabecera;
+        }
+
+        dibujarFila(doc, fila, xTabla, y, anchosColumnas, alturaFila);
+        y += alturaFila;
+      });
+
+      doc.moveDown(1.5);
+      doc.fillColor(SUBTITLE_COLOR).fontSize(9).text(
+        `Documento generado el ${new Date().toLocaleString('es-PE')} | SGC-UNT v1.0`,
+        {
+          align: 'center',
+        }
+      );
+
+      doc.end();
+    } catch (error) {
+      reject(error);
+    }
+  });
+};

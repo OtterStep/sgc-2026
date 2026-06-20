@@ -1,5 +1,5 @@
 import { Proceso, Macroproceso, ActividadProceso, Usuario } from '../models/index.js';
-import { generarPDF, plantillaReporte } from '../services/pdfService.js';
+import { generarPDF } from '../services/pdfService.js';
 import { formatError, prepareCreateData } from '../utils/errorHandler.js';
 
 export const listarMacroprocesos = async (req, res) => {
@@ -163,12 +163,18 @@ export const reporteMapaProcesos = async (req, res) => {
     const procesos = await Proceso.findAll({
       include: [{ model: Macroproceso, as: 'macroproceso' }],
     });
-    let html = '<table><tr><th>Código</th><th>Nombre</th><th>Macroproceso</th><th>Objetivo</th><th>Estado</th></tr>';
-    procesos.forEach(p => {
-      html += `<tr><td>${p.codigo || '-'}</td><td>${p.nombre || '-'}</td><td>${p.macroproceso?.nombre || '-'}</td><td>${p.objetivo || '-'}</td><td>${p.estado || '-'}</td></tr>`;
+    const filas = procesos.map(p => ([
+      p.codigo || '-',
+      p.nombre || '-',
+      p.macroproceso?.nombre || '-',
+      p.objetivo || '-',
+      p.estado || '-',
+    ]));
+    const pdf = await generarPDF({
+      titulo: 'Mapa de Procesos Institucionales',
+      columnas: ['Código', 'Nombre', 'Macroproceso', 'Objetivo', 'Estado'],
+      filas,
     });
-    html += '</table>';
-    const pdf = await generarPDF(plantillaReporte('Mapa de Procesos Institucionales', html));
     res.set({ 'Content-Type': 'application/pdf', 'Content-Disposition': 'attachment; filename=mapa-procesos.pdf' });
     res.send(pdf);
   } catch (err) {

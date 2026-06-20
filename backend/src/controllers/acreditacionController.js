@@ -1,5 +1,5 @@
 import { EstandarAcreditacion, FactorCriterio, Autoevaluacion, EvaluacionCriterio } from '../models/index.js';
-import { generarPDF, plantillaReporte } from '../services/pdfService.js';
+import { generarPDF } from '../services/pdfService.js';
 import { formatError, prepareCreateData } from '../utils/errorHandler.js';
 
 export const listarEstandares = async (req, res) => {
@@ -78,12 +78,17 @@ export const reporteAcreditacion = async (req, res) => {
         { model: EstandarAcreditacion, as: 'estandar' },
       ],
     });
-    let html = '<table><tr><th>Periodo</th><th>Estandar</th><th>Estado</th><th>Puntaje</th></tr>';
-    autoevaluaciones.forEach(a => {
-      html += `<tr><td>${a.periodo || '-'}</td><td>${a.estandar?.nombre || '-'}</td><td>${a.estado || '-'}</td><td>${a.puntaje_total || '-'}</td></tr>`;
+    const filas = autoevaluaciones.map(a => ([
+      a.periodo || '-',
+      a.estandar?.nombre || '-',
+      a.estado || '-',
+      a.puntaje_total || '-',
+    ]));
+    const pdf = await generarPDF({
+      titulo: 'Reporte de Acreditación y Autoevaluación',
+      columnas: ['Periodo', 'Estandar', 'Estado', 'Puntaje'],
+      filas,
     });
-    html += '</table>';
-    const pdf = await generarPDF(plantillaReporte('Reporte de Acreditación y Autoevaluación', html));
     res.set({ 'Content-Type': 'application/pdf', 'Content-Disposition': 'attachment; filename=acreditacion.pdf' });
     res.send(pdf);
   } catch (err) {

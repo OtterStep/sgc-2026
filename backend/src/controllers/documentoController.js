@@ -1,5 +1,5 @@
 import { Documento, Usuario, TipoDocumento } from '../models/index.js';
-import { generarPDF, plantillaReporte } from '../services/pdfService.js';
+import { generarPDF } from '../services/pdfService.js';
 import { dispararWebhook } from '../services/n8nService.js';
 import { validationResult } from 'express-validator';
 import { formatError, prepareCreateData } from '../utils/errorHandler.js';
@@ -103,24 +103,19 @@ export const archivarDocumento = async (req, res) => {
 export const generarReporteDocumentos = async (req, res) => {
   try {
     const docs = await Documento.findAll({ raw: true });
-    let filas = docs.map(d => `
-      <tr>
-        <td>${d.codigo || '-'}</td>
-        <td>${d.titulo || '-'}</td>
-        <td>${d.estado || '-'}</td>
-        <td>${d.version_actual || '-'}</td>
-        <td>${d.creado_en ? new Date(d.creado_en).toLocaleDateString('es-PE') : '-'}</td>
-      </tr>
-    `).join('');
+    const filas = docs.map(d => ([
+      d.codigo || '-',
+      d.titulo || '-',
+      d.estado || '-',
+      d.version_actual || '-',
+      d.creado_en ? new Date(d.creado_en).toLocaleDateString('es-PE') : '-',
+    ]));
 
-    const html = plantillaReporte('Reporte de Documentos', `
-      <table>
-        <tr><th>Código</th><th>Título</th><th>Estado</th><th>Versión</th><th>Fecha Creación</th></tr>
-        ${filas}
-      </table>
-    `);
-
-    const pdf = await generarPDF(html);
+    const pdf = await generarPDF({
+      titulo: 'Reporte de Documentos',
+      columnas: ['Código', 'Título', 'Estado', 'Versión', 'Fecha Creación'],
+      filas,
+    });
     res.set({ 'Content-Type': 'application/pdf', 'Content-Disposition': 'attachment; filename=documentos.pdf' });
     res.send(pdf);
   } catch (err) {

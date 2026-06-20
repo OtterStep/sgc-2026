@@ -1,5 +1,5 @@
 import { Indicador, MedicionIndicador, Proceso } from '../models/index.js';
-import { generarPDF, plantillaReporte } from '../services/pdfService.js';
+import { generarPDF } from '../services/pdfService.js';
 import { formatError, prepareCreateData } from '../utils/errorHandler.js';
 
 export const listarIndicadores = async (req, res) => {
@@ -54,12 +54,19 @@ export const registrarMedicion = async (req, res) => {
 export const reporteIndicadores = async (req, res) => {
   try {
     const indicadores = await Indicador.findAll({ include: [{ model: Proceso, as: 'proceso' }] });
-    let html = '<table><tr><th>Código</th><th>Nombre</th><th>Proceso</th><th>Tipo</th><th>Meta</th><th>Estado</th></tr>';
-    indicadores.forEach(i => {
-      html += `<tr><td>${i.codigo || '-'}</td><td>${i.nombre || '-'}</td><td>${i.proceso?.nombre || '-'}</td><td>${i.tipo || '-'}</td><td>${i.meta || '-'}</td><td>${i.estado || '-'}</td></tr>`;
+    const filas = indicadores.map(i => ([
+      i.codigo || '-',
+      i.nombre || '-',
+      i.proceso?.nombre || '-',
+      i.tipo || '-',
+      i.meta || '-',
+      i.estado || '-',
+    ]));
+    const pdf = await generarPDF({
+      titulo: 'Reporte de Indicadores de Gestión',
+      columnas: ['Código', 'Nombre', 'Proceso', 'Tipo', 'Meta', 'Estado'],
+      filas,
     });
-    html += '</table>';
-    const pdf = await generarPDF(plantillaReporte('Reporte de Indicadores de Gestión', html));
     res.set({ 'Content-Type': 'application/pdf', 'Content-Disposition': 'attachment; filename=indicadores.pdf' });
     res.send(pdf);
   } catch (err) {

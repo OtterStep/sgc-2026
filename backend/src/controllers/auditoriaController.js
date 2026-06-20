@@ -1,5 +1,5 @@
 import { PlanAuditoria, Hallazgo, Usuario } from '../models/index.js';
-import { generarPDF, plantillaReporte } from '../services/pdfService.js';
+import { generarPDF } from '../services/pdfService.js';
 import { formatError, prepareCreateData } from '../utils/errorHandler.js';
 
 export const listarPlanes = async (req, res) => {
@@ -83,12 +83,17 @@ export const cerrarHallazgo = async (req, res) => {
 export const reporteAuditoria = async (req, res) => {
   try {
     const planes = await PlanAuditoria.findAll();
-    let html = '<table><tr><th>Código</th><th>Nombre</th><th>Tipo</th><th>Estado</th></tr>';
-    planes.forEach(p => {
-      html += `<tr><td>${p.codigo || '-'}</td><td>${p.nombre || '-'}</td><td>${p.tipo || '-'}</td><td>${p.estado || '-'}</td></tr>`;
+    const filas = planes.map(p => ([
+      p.codigo || '-',
+      p.nombre || '-',
+      p.tipo || '-',
+      p.estado || '-',
+    ]));
+    const pdf = await generarPDF({
+      titulo: 'Reporte de Auditorías e Inspecciones',
+      columnas: ['Código', 'Nombre', 'Tipo', 'Estado'],
+      filas,
     });
-    html += '</table>';
-    const pdf = await generarPDF(plantillaReporte('Reporte de Auditorías e Inspecciones', html));
     res.set({ 'Content-Type': 'application/pdf', 'Content-Disposition': 'attachment; filename=auditorias.pdf' });
     res.send(pdf);
   } catch (err) {

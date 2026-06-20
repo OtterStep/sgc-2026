@@ -1,5 +1,5 @@
 import { Capa, Hallazgo, Usuario } from '../models/index.js';
-import { generarPDF, plantillaReporte } from '../services/pdfService.js';
+import { generarPDF } from '../services/pdfService.js';
 import { formatError, prepareCreateData } from '../utils/errorHandler.js';
 
 export const listarCapas = async (req, res) => {
@@ -114,29 +114,20 @@ export const reporteCapa = async (req, res) => {
         { model: Usuario, as: 'responsable', attributes: ['nombres', 'apellidos'] },
       ],
     });
-    let html = plantillaReporte('Reporte de Acciones Correctivas y Preventivas', `
-      <table style="width: 100%; border-collapse: collapse;">
-        <tr style="background: #f1f5f9;">
-          <th style="border: 1px solid #e2e8f0; padding: 8px;">Código</th>
-          <th style="border: 1px solid #e2e8f0; padding: 8px;">Tipo</th>
-          <th style="border: 1px solid #e2e8f0; padding: 8px;">Descripción</th>
-          <th style="border: 1px solid #e2e8f0; padding: 8px;">Responsable</th>
-          <th style="border: 1px solid #e2e8f0; padding: 8px;">Estado</th>
-          <th style="border: 1px solid #e2e8f0; padding: 8px;">Efectividad</th>
-          <th style="border: 1px solid #e2e8f0; padding: 8px;">Hallazgo Origen</th>
-        </tr>
-        ${capas.map(c => `<tr>
-          <td style="border: 1px solid #e2e8f0; padding: 8px;">${c.codigo || '-'}</td>
-          <td style="border: 1px solid #e2e8f0; padding: 8px;">${c.tipo || '-'}</td>
-          <td style="border: 1px solid #e2e8f0; padding: 8px;">${c.descripcion || '-'}</td>
-          <td style="border: 1px solid #e2e8f0; padding: 8px;">${c.responsable ? `${c.responsable.nombres || ''} ${c.responsable.apellidos || ''}` : '-'}</td>
-          <td style="border: 1px solid #e2e8f0; padding: 8px;">${c.estado || '-'}</td>
-          <td style="border: 1px solid #e2e8f0; padding: 8px;">${c.efectividad || '-'}</td>
-          <td style="border: 1px solid #e2e8f0; padding: 8px;">${c.hallazgo?.codigo || '-'}</td>
-        </tr>`).join('')}
-      </table>
-    `);
-    const pdf = await generarPDF(html);
+    const filas = capas.map(c => ([
+      c.codigo || '-',
+      c.tipo || '-',
+      c.descripcion || '-',
+      c.responsable ? `${c.responsable.nombres || ''} ${c.responsable.apellidos || ''}`.trim() : '-',
+      c.estado || '-',
+      c.efectividad || '-',
+      c.hallazgo?.codigo || '-',
+    ]));
+    const pdf = await generarPDF({
+      titulo: 'Reporte de Acciones Correctivas y Preventivas',
+      columnas: ['Código', 'Tipo', 'Descripción', 'Responsable', 'Estado', 'Efectividad', 'Hallazgo Origen'],
+      filas,
+    });
     res.set({ 'Content-Type': 'application/pdf', 'Content-Disposition': 'attachment; filename=reporte-capas.pdf' });
     res.send(pdf);
   } catch (err) {
