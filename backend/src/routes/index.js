@@ -10,6 +10,7 @@ import * as capaCtrl from '../controllers/capaController.js';
 import * as riesgoCtrl from '../controllers/riesgoController.js';
 import * as indCtrl from '../controllers/indicadorController.js';
 import * as encCtrl from '../controllers/encuestaController.js';
+import * as usrCtrl from '../controllers/usuarioController.js';
 
 const router = Router();
 
@@ -17,7 +18,12 @@ const router = Router();
 router.post('/auth/registrar', authCtrl.registrar);
 router.post('/auth/login', authCtrl.login);
 router.get('/auth/perfil', verificarToken, authCtrl.perfil);
-router.get('/auth/usuarios', verificarToken, authCtrl.listarUsuarios);
+
+// Usuarios (Gestión de Roles y Permisos)
+router.get('/usuarios', verificarToken, verificarRol(['admin']), usrCtrl.listarUsuarios);
+router.post('/usuarios', verificarToken, verificarRol(['admin']), usrCtrl.crearUsuario);
+router.put('/usuarios/:id', verificarToken, verificarRol(['admin']), usrCtrl.actualizarUsuario);
+router.patch('/usuarios/:id/desactivar', verificarToken, verificarRol(['admin']), usrCtrl.desactivarUsuario);
 
 // Documentos
 router.get('/documentos/reporte', verificarToken, docCtrl.generarReporteDocumentos);

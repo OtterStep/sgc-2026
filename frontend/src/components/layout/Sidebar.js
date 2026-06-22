@@ -4,25 +4,26 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import {
   FileText, GitBranch, Award, Search, ShieldAlert,
-  Activity, BarChart3, ClipboardList, LogOut, Home
+  Activity, BarChart3, ClipboardList, LogOut, Home, Users
 } from 'lucide-react';
 
 const menuItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: Home },
-  { href: '/documentos', label: 'Gestión Documental', icon: FileText },
-  { href: '/macroprocesos', label: 'Macroprocesos', icon: GitBranch },
-  { href: '/procesos', label: 'Mapa de Procesos', icon: GitBranch },
-  { href: '/acreditacion', label: 'Acreditación', icon: Award },
-  { href: '/auditorias', label: 'Auditorías', icon: Search },
-  { href: '/capas', label: 'CAPA', icon: ShieldAlert },
-  { href: '/riesgos', label: 'Riesgos', icon: Activity },
-  { href: '/indicadores', label: 'Indicadores', icon: BarChart3 },
-  { href: '/encuestas', label: 'Encuestas', icon: ClipboardList },
+  { href: '/dashboard', label: 'Dashboard', icon: Home, roles: ['admin', 'gestor_calidad', 'auditor', 'docente', 'estudiante', 'egresado', 'invitado'] },
+  { href: '/documentos', label: 'Gestión Documental', icon: FileText, roles: ['admin', 'gestor_calidad', 'auditor', 'docente', 'estudiante', 'egresado'] },
+  { href: '/macroprocesos', label: 'Macroprocesos', icon: GitBranch, roles: ['admin', 'gestor_calidad', 'auditor', 'docente', 'estudiante'] },
+  { href: '/procesos', label: 'Mapa de Procesos', icon: GitBranch, roles: ['admin', 'gestor_calidad', 'auditor', 'docente', 'estudiante'] },
+  { href: '/acreditacion', label: 'Acreditación', icon: Award, roles: ['admin', 'gestor_calidad', 'auditor', 'docente'] },
+  { href: '/auditorias', label: 'Auditorías', icon: Search, roles: ['admin', 'gestor_calidad', 'auditor'] },
+  { href: '/capas', label: 'CAPA', icon: ShieldAlert, roles: ['admin', 'gestor_calidad', 'auditor'] },
+  { href: '/riesgos', label: 'Riesgos', icon: Activity, roles: ['admin', 'gestor_calidad', 'auditor'] },
+  { href: '/indicadores', label: 'Indicadores', icon: BarChart3, roles: ['admin', 'gestor_calidad', 'auditor', 'docente'] },
+  { href: '/encuestas', label: 'Encuestas', icon: ClipboardList, roles: ['admin', 'gestor_calidad', 'estudiante', 'egresado', 'docente', 'auditor', 'invitado'] },
+  { href: '/usuarios', label: 'Usuarios', icon: Users, roles: ['admin'] },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const { logout } = useAuth();
+  const { usuario, logout } = useAuth();
 
   return (
     <aside className="w-64 bg-slate-900 text-white min-h-screen flex flex-col">
@@ -31,7 +32,7 @@ export default function Sidebar() {
         <p className="text-xs text-slate-400 mt-1">Gestión de la Calidad</p>
       </div>
       <nav className="flex-1 p-4 space-y-1">
-        {menuItems.map((item) => {
+        {menuItems.filter(item => item.roles.includes(usuario?.rol)).map((item) => {
           const Icon = item.icon;
           const activo = pathname.startsWith(item.href);
           return (
