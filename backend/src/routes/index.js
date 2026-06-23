@@ -18,6 +18,8 @@ const router = Router();
 router.post('/auth/registrar', authCtrl.registrar);
 router.post('/auth/login', authCtrl.login);
 router.get('/auth/perfil', verificarToken, authCtrl.perfil);
+router.post('/auth/cambiar-password', verificarToken, authCtrl.cambiarPassword);
+router.post('/auth/restablecer-password', verificarToken, verificarRol(['admin']), authCtrl.restablecerPasswordAdmin);
 
 // Usuarios (Gestión de Roles y Permisos)
 router.get('/usuarios', verificarToken, verificarRol(['admin']), usrCtrl.listarUsuarios);
