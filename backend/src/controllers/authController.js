@@ -65,3 +65,56 @@ export const listarUsuarios = async (req, res) => {
     res.status(500).json({ error: formatError(err) });
   }
 };
+
+export const cambiarPassword = async (req, res) => {
+  try {
+    const { contrasena_actual, nueva_contrasena } = req.body;
+    if (!contrasena_actual || !nueva_contrasena) {
+      return res.status(400).json({ error: 'Todos los campos son requeridos' });
+    }
+    if (nueva_contrasena.length < 6) {
+      return res.status(400).json({ error: 'La nueva contraseña debe tener al menos 6 caracteres' });
+    }
+
+    const usuario = await Usuario.findByPk(req.usuario.id);
+    if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado' });
+
+    const valido = await bcrypt.compare(contrasena_actual, usuario.contrasena_hash);
+    if (!valido) return res.status(400).json({ error: 'La contraseña actual no es correcta' });
+
+    const hash = await bcrypt.hash(nueva_contrasena, 10);
+    await Usuario.update(
+      { contrasena_hash: hash, modificado_por: req.usuario.id },
+      { where: { id: req.usuario.id } }
+    );
+
+    res.json({ mensaje: 'Contraseña actualizada correctamente' });
+  } catch (err) {
+    res.status(500).json({ error: formatError(err) });
+  }
+};
+
+export const restablecerPasswordAdmin = async (req, res) => {
+  try {
+    const { usuario_id, nueva_contrasena } = req.body;
+    if (!usuario_id || !nueva_contrasena) {
+      return res.status(400).json({ error: 'Todos los campos son requeridos' });
+    }
+    if (nueva_contrasena.length < 6) {
+      return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
+    }
+
+    const usuario = await Usuario.findByPk(usuario_id);
+    if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado' });
+
+    const hash = await bcrypt.hash(nueva_contrasena, 10);
+    await Usuario.update(
+      { contrasena_hash: hash, modificado_por: req.usuario.id },
+      { where: { id: usuario_id } }
+    );
+
+    res.json({ mensaje: `Contraseña restablecida correctamente para ${usuario.nombres} ${usuario.apellidos}` });
+  } catch (err) {
+    res.status(500).json({ error: formatError(err) });
+  }
+};

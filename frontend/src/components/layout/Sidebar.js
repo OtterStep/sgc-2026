@@ -4,10 +4,11 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import {
   FileText, GitBranch, Award, Search, ShieldAlert,
-  Activity, BarChart3, ClipboardList, LogOut, Home, Users
+  Activity, BarChart3, ClipboardList, LogOut, Home, Users, User
 } from 'lucide-react';
 
 const menuItems = [
+  { href: '/perfil', label: 'Mi Perfil', icon: User, roles: ['admin', 'gestor_calidad', 'auditor', 'docente', 'estudiante', 'egresado', 'invitado'] },
   { href: '/dashboard', label: 'Dashboard', icon: Home, roles: ['admin', 'gestor_calidad', 'auditor', 'docente', 'estudiante', 'egresado', 'invitado'] },
   { href: '/documentos', label: 'Gestión Documental', icon: FileText, roles: ['admin', 'gestor_calidad', 'auditor', 'docente', 'estudiante', 'egresado'] },
   { href: '/macroprocesos', label: 'Macroprocesos', icon: GitBranch, roles: ['admin', 'gestor_calidad', 'auditor', 'docente', 'estudiante'] },

@@ -3,10 +3,12 @@ import Sidebar from '@/components/layout/Sidebar';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { useAuth } from '@/context/AuthContext';
 
 const COLORES = ['#003366', '#0066cc', '#4d94ff', '#99c2ff', '#cce0ff'];
 
 export default function Dashboard() {
+  const { usuario } = useAuth();
   const [estadisticas, setEstadisticas] = useState({
     documentos: 0, capas: 0, riesgos: 0, encuestas: 0,
     indicadores: [], satisfaccion: []
@@ -39,11 +41,11 @@ export default function Dashboard() {
 
         <div className="grid grid-cols-4 gap-6 mb-8">
           {[
-            { label: 'Documentos', valor: estadisticas.documentos, color: 'bg-blue-600' },
-            { label: 'CAPAs Activas', valor: estadisticas.capas, color: 'bg-amber-500' },
-            { label: 'Riesgos', valor: estadisticas.riesgos, color: 'bg-red-500' },
-            { label: 'Encuestas', valor: estadisticas.encuestas, color: 'bg-emerald-500' },
-          ].map((card, i) => (
+            { label: 'Documentos', valor: estadisticas.documentos, color: 'bg-blue-600', show: true },
+            { label: 'CAPAs Activas', valor: estadisticas.capas, color: 'bg-amber-500', show: ['admin', 'gestor_calidad', 'auditor'].includes(usuario?.rol) },
+            { label: 'Riesgos', valor: estadisticas.riesgos, color: 'bg-red-500', show: ['admin', 'gestor_calidad', 'auditor'].includes(usuario?.rol) },
+            { label: 'Encuestas', valor: estadisticas.encuestas, color: 'bg-emerald-500', show: true },
+          ].filter(card => card.show).map((card, i) => (
             <div key={i} className="bg-white rounded-xl shadow-sm p-6 border border-slate-200">
               <div className={`w-12 h-12 ${card.color} rounded-lg flex items-center justify-center text-white mb-4`}>
                 <span className="text-xl font-bold">{card.valor}</span>
@@ -54,8 +56,9 @@ export default function Dashboard() {
         </div>
 
         <div className="grid grid-cols-2 gap-6">
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-            <h3 className="text-lg font-semibold mb-4">Indicadores de Gestión</h3>
+          {['admin', 'gestor_calidad', 'docente', 'auditor'].includes(usuario?.rol) && (
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+              <h3 className="text-lg font-semibold mb-4">Indicadores de Gestión</h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={estadisticas.indicadores}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -66,6 +69,7 @@ export default function Dashboard() {
               </BarChart>
             </ResponsiveContainer>
           </div>
+          )}
 
           <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
             <h3 className="text-lg font-semibold mb-4">Satisfacción General</h3>

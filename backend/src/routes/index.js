@@ -11,6 +11,7 @@ import * as riesgoCtrl from '../controllers/riesgoController.js';
 import * as indCtrl from '../controllers/indicadorController.js';
 import * as encCtrl from '../controllers/encuestaController.js';
 import * as usrCtrl from '../controllers/usuarioController.js';
+import * as perCtrl from '../controllers/periodoController.js';
 
 const router = Router();
 
@@ -18,6 +19,8 @@ const router = Router();
 router.post('/auth/registrar', authCtrl.registrar);
 router.post('/auth/login', authCtrl.login);
 router.get('/auth/perfil', verificarToken, authCtrl.perfil);
+router.post('/auth/cambiar-password', verificarToken, authCtrl.cambiarPassword);
+router.post('/auth/restablecer-password', verificarToken, verificarRol(['admin']), authCtrl.restablecerPasswordAdmin);
 
 // Usuarios (Gestión de Roles y Permisos)
 router.get('/usuarios', verificarToken, verificarRol(['admin']), usrCtrl.listarUsuarios);
@@ -92,8 +95,16 @@ router.post('/planes-mitigacion', verificarToken, riesgoCtrl.crearPlanMitigacion
 router.get('/indicadores/reporte', verificarToken, indCtrl.reporteIndicadores);
 router.get('/indicadores', verificarToken, indCtrl.listarIndicadores);
 router.post('/indicadores', verificarToken, verificarRol(['admin', 'gestor_calidad']), indCtrl.crearIndicador);
+router.put('/indicadores/:id', verificarToken, verificarRol(['admin', 'gestor_calidad']), indCtrl.actualizarIndicador);
+router.delete('/indicadores/:id', verificarToken, verificarRol(['admin', 'gestor_calidad']), indCtrl.eliminarIndicador);
 router.get('/indicadores/:indicador_id/mediciones', verificarToken, indCtrl.listarMediciones);
-router.post('/mediciones', verificarToken, indCtrl.registrarMedicion);
+router.post('/mediciones', verificarToken, verificarRol(['admin', 'gestor_calidad']), indCtrl.registrarMedicion);
+router.put('/mediciones/:id', verificarToken, verificarRol(['admin', 'gestor_calidad']), indCtrl.actualizarMedicion);
+router.delete('/mediciones/:id', verificarToken, verificarRol(['admin', 'gestor_calidad']), indCtrl.eliminarMedicion);
+
+// Periodos Académicos
+router.get('/periodos-academicos', verificarToken, perCtrl.listarPeriodos);
+router.post('/periodos-academicos', verificarToken, verificarRol(['admin', 'gestor_calidad']), perCtrl.crearPeriodo);
 
 // Encuestas
 router.get('/encuestas', verificarToken, encCtrl.listarEncuestas);

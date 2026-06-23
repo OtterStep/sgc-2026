@@ -2,10 +2,12 @@
 import Sidebar from '@/components/layout/Sidebar';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Award, Plus, Download, CheckCircle } from 'lucide-react';
-import { swalError, swalSuccess } from '@/lib/swal';
+import { Award, Plus, Download, CheckCircle, Edit, Trash2 } from 'lucide-react';
+import { swalError, swalSuccess, swalConfirm } from '@/lib/swal';
+import { useAuth } from '@/context/AuthContext';
 
 export default function AcreditacionPage() {
+  const { usuario } = useAuth();
   const [estandares, setEstandares] = useState([]);
   const [autoevaluaciones, setAutoevaluaciones] = useState([]);
   const [tab, setTab] = useState('estandares');
@@ -72,29 +74,38 @@ export default function AcreditacionPage() {
 
         {tab === 'estandares' && (
           <div className="space-y-6">
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-              <h3 className="font-semibold mb-4 flex items-center gap-2"><Plus size={18} /> Nuevo Estándar</h3>
-              <form onSubmit={handleCrearEstandar} className="grid grid-cols-3 gap-4">
-                <input placeholder="Código" className="px-3 py-2 border rounded-lg" value={nuevoEstandar.codigo} onChange={e => setNuevoEstandar({...nuevoEstandar, codigo: e.target.value})} required />
-                <input placeholder="Nombre" className="px-3 py-2 border rounded-lg" value={nuevoEstandar.nombre} onChange={e => setNuevoEstandar({...nuevoEstandar, nombre: e.target.value})} required />
-                <input placeholder="Organización" className="px-3 py-2 border rounded-lg" value={nuevoEstandar.organizacion} onChange={e => setNuevoEstandar({...nuevoEstandar, organizacion: e.target.value})} required />
-                <button type="submit" className="col-span-3 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Registrar Estándar</button>
-              </form>
-            </div>
+            {['admin', 'gestor_calidad'].includes(usuario?.rol) && (
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <h3 className="font-semibold mb-4 flex items-center gap-2"><Plus size={18} /> Nuevo Estándar</h3>
+                <form onSubmit={handleCrearEstandar} className="grid grid-cols-3 gap-4">
+                  <input placeholder="Código" className="px-3 py-2 border rounded-lg" value={nuevoEstandar.codigo} onChange={e => setNuevoEstandar({...nuevoEstandar, codigo: e.target.value})} required />
+                  <input placeholder="Nombre" className="px-3 py-2 border rounded-lg" value={nuevoEstandar.nombre} onChange={e => setNuevoEstandar({...nuevoEstandar, nombre: e.target.value})} required />
+                  <input placeholder="Organización" className="px-3 py-2 border rounded-lg" value={nuevoEstandar.organizacion} onChange={e => setNuevoEstandar({...nuevoEstandar, organizacion: e.target.value})} required />
+                  <button type="submit" className="col-span-3 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Registrar Estándar</button>
+                </form>
+              </div>
+            )}
 
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-              <table className="w-full">
-                <thead className="bg-slate-50"><tr><th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Código</th><th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Nombre</th><th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Organización</th></tr></thead>
-                <tbody className="divide-y divide-slate-200">
-                  {estandares.map(e => (
-                    <tr key={e.id} className="hover:bg-slate-50">
-                      <td className="px-6 py-4 text-sm font-medium">{e.codigo}</td>
-                      <td className="px-6 py-4 text-sm">{e.nombre}</td>
-                      <td className="px-6 py-4 text-sm text-slate-500">{e.organizacion}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="grid grid-cols-3 gap-6">
+              {estandares.map(e => (
+                <div key={e.id} className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 relative group">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <p className="text-sm text-slate-500">{e.codigo}</p>
+                      <p className="font-semibold text-slate-900">{e.nombre}</p>
+                    </div>
+                  </div>
+                  <div className="mb-4">
+                    <span className="px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded-lg font-medium">{e.organizacion}</span>
+                  </div>
+                  {['admin', 'gestor_calidad'].includes(usuario?.rol) && (
+                    <div className="flex gap-2">
+                      <button className="flex-1 py-2 border border-amber-500 text-amber-600 rounded-lg hover:bg-amber-50 flex justify-center items-center gap-2 text-sm font-medium"><Edit size={16} /> Editar</button>
+                      <button className="flex-1 py-2 border border-red-500 text-red-600 rounded-lg hover:bg-red-50 flex justify-center items-center gap-2 text-sm font-medium"><Trash2 size={16} /> Eliminar</button>
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         )}
@@ -115,7 +126,12 @@ export default function AcreditacionPage() {
                   <span className="text-2xl font-bold text-slate-800">{a.puntaje_total || '-'}</span>
                   <span className="text-sm text-slate-500">/ 100 pts</span>
                 </div>
-                <button className="w-full py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 text-sm font-medium">Ver Detalle</button>
+                <div className="flex gap-2">
+                  <button className="flex-1 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 text-sm font-medium">Ver Detalle</button>
+                  {['admin', 'gestor_calidad'].includes(usuario?.rol) && (
+                    <button className="py-2 px-3 border border-red-500 text-red-600 rounded-lg hover:bg-red-50 text-sm font-medium"><Trash2 size={16} /></button>
+                  )}
+                </div>
               </div>
             ))}
           </div>
