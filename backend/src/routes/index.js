@@ -61,10 +61,13 @@ router.post('/actividades', verificarToken, verificarRol(['admin', 'gestor_calid
 router.get('/acreditacion/reporte', verificarToken, acrCtrl.reporteAcreditacion);
 router.get('/estandares', verificarToken, acrCtrl.listarEstandares);
 router.post('/estandares', verificarToken, verificarRol(['admin', 'gestor_calidad']), acrCtrl.crearEstandar);
+router.put('/estandares/:id', verificarToken, verificarRol(['admin', 'gestor_calidad']), acrCtrl.actualizarEstandar);
+router.delete('/estandares/:id', verificarToken, verificarRol(['admin', 'gestor_calidad']), acrCtrl.eliminarEstandar);
 router.get('/estandares/:estandar_id/factores', verificarToken, acrCtrl.listarFactores);
 router.post('/factores', verificarToken, verificarRol(['admin', 'gestor_calidad']), acrCtrl.crearFactor);
 router.get('/autoevaluaciones', verificarToken, acrCtrl.listarAutoevaluaciones);
 router.post('/autoevaluaciones', verificarToken, verificarRol(['admin', 'gestor_calidad']), acrCtrl.crearAutoevaluacion);
+router.delete('/autoevaluaciones/:id', verificarToken, verificarRol(['admin', 'gestor_calidad']), acrCtrl.eliminarAutoevaluacion);
 router.post('/evaluaciones-criterio', verificarToken, acrCtrl.evaluarCriterio);
 
 // Auditorías

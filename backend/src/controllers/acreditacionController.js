@@ -20,6 +20,26 @@ export const crearEstandar = async (req, res) => {
   }
 };
 
+export const actualizarEstandar = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await EstandarAcreditacion.update(req.body, { where: { id } });
+    res.json({ message: 'Estándar actualizado' });
+  } catch (err) {
+    res.status(500).json({ error: formatError(err) });
+  }
+};
+
+export const eliminarEstandar = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await EstandarAcreditacion.destroy({ where: { id } });
+    res.json({ message: 'Estándar eliminado' });
+  } catch (err) {
+    res.status(500).json({ error: formatError(err) });
+  }
+};
+
 export const listarFactores = async (req, res) => {
   try {
     const { estandar_id } = req.params;
@@ -56,6 +76,16 @@ export const crearAutoevaluacion = async (req, res) => {
     const data = prepareCreateData(req.body, ['estandar_id']);
     const a = await Autoevaluacion.create({ ...data, creado_por: req.usuario.id });
     res.status(201).json(a);
+  } catch (err) {
+    res.status(500).json({ error: formatError(err) });
+  }
+};
+
+export const eliminarAutoevaluacion = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await Autoevaluacion.destroy({ where: { id } });
+    res.json({ message: 'Autoevaluación eliminada' });
   } catch (err) {
     res.status(500).json({ error: formatError(err) });
   }
