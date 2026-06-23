@@ -33,15 +33,15 @@ export default function MacroprocesosPage() {
     } catch (err) {
       // Datos de demostración
       setMacroprocesos([
-        { id: '1', codigo: 'MP-001', nombre: 'Gestión Académica', tipo: 'misional', estado: 'activo', descripcion: 'Gestión de procesos académicos de la universidad', creado_en: '2024-01-15' },
-        { id: '2', codigo: 'MP-002', nombre: 'Gestión Administrativa', tipo: 'apoyo', estado: 'activo', descripcion: 'Gestión de procesos administrativos', creado_en: '2024-02-20' },
+        { id: '1', codigo: 'MP-001', nombre: 'Gestión Académica', tipo: 'misional', estado: 'activo', descripcion: 'Gestión de procesos académicos de la universidad', creado_en: '2024-01-15', responsable: { nombres: 'Juan', apellidos: 'Pérez' } },
+        { id: '2', codigo: 'MP-002', nombre: 'Gestión Administrativa', tipo: 'apoyo', estado: 'activo', descripcion: 'Gestión de procesos administrativos', creado_en: '2024-02-20', responsable: { nombres: 'María', apellidos: 'Gómez' } },
       ]);
     }
   };
 
   const cargarUsuarios = async () => {
     try {
-      const { data } = await axios.get('/api/v1/auth/usuarios');
+      const { data } = await axios.get('/api/v1/usuarios');
       setUsuarios(data);
     } catch (err) {
       console.error(err);

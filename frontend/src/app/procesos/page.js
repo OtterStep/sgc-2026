@@ -23,7 +23,7 @@ export default function ProcesosPage() {
       const [mp, pr, us] = await Promise.all([
         axios.get('/api/v1/macroprocesos'),
         axios.get('/api/v1/procesos'),
-        axios.get('/api/v1/auth/usuarios'),
+        axios.get('/api/v1/usuarios'),
       ]);
       setMacroprocesos(mp.data);
       setProcesos(pr.data);
@@ -35,8 +35,8 @@ export default function ProcesosPage() {
         { id: '2', codigo: 'MP-02', nombre: 'Formación Profesional', tipo: 'misional' },
       ]);
       setProcesos([
-        { id: '1', codigo: 'P-01', nombre: 'Planificación Curricular', objetivo: 'Diseñar planes de estudio', macroproceso_id: '2', estado: 'activo' },
-        { id: '2', codigo: 'P-02', nombre: 'Gestión de Docencia', objetivo: 'Ejecutar actividades académicas', macroproceso_id: '2', estado: 'activo' },
+        { id: '1', codigo: 'P-01', nombre: 'Planificación Curricular', objetivo: 'Diseñar planes de estudio', macroproceso_id: '2', estado: 'activo', macroproceso: { nombre: 'Formación Profesional' }, responsable: { nombres: 'Juan', apellidos: 'Pérez' } },
+        { id: '2', codigo: 'P-02', nombre: 'Gestión de Docencia', objetivo: 'Ejecutar actividades académicas', macroproceso_id: '2', estado: 'activo', macroproceso: { nombre: 'Formación Profesional' }, responsable: { nombres: 'María', apellidos: 'Gómez' } },
       ]);
     }
   };
