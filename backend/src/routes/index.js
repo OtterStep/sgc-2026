@@ -74,9 +74,12 @@ router.post('/evaluaciones-criterio', verificarToken, acrCtrl.evaluarCriterio);
 router.get('/auditorias/reporte', verificarToken, audCtrl.reporteAuditoria);
 router.get('/planes-auditoria', verificarToken, audCtrl.listarPlanes);
 router.post('/planes-auditoria', verificarToken, verificarRol(['admin', 'gestor_calidad', 'auditor']), audCtrl.crearPlan);
+router.put('/planes-auditoria/:id', verificarToken, verificarRol(['admin', 'gestor_calidad', 'auditor']), audCtrl.actualizarPlan);
+router.delete('/planes-auditoria/:id', verificarToken, verificarRol(['admin', 'gestor_calidad']), audCtrl.eliminarPlan);
 router.get('/hallazgos', verificarToken, audCtrl.listarHallazgos);
 router.post('/hallazgos', verificarToken, verificarRol(['admin', 'auditor']), audCtrl.crearHallazgo);
 router.patch('/hallazgos/:id', verificarToken, audCtrl.actualizarHallazgo);
+router.delete('/hallazgos/:id', verificarToken, verificarRol(['admin', 'auditor']), audCtrl.eliminarHallazgo);
 router.patch('/hallazgos/:id/cerrar', verificarToken, audCtrl.cerrarHallazgo);
 
 // CAPA
@@ -92,6 +95,8 @@ router.delete('/capas/:id', verificarToken, verificarRol(['admin', 'gestor_calid
 router.get('/riesgos/reporte', verificarToken, riesgoCtrl.reporteRiesgos);
 router.get('/riesgos', verificarToken, riesgoCtrl.listarRiesgos);
 router.post('/riesgos', verificarToken, verificarRol(['admin', 'gestor_calidad']), riesgoCtrl.crearRiesgo);
+router.put('/riesgos/:id', verificarToken, verificarRol(['admin', 'gestor_calidad']), riesgoCtrl.actualizarRiesgo);
+router.delete('/riesgos/:id', verificarToken, verificarRol(['admin', 'gestor_calidad']), riesgoCtrl.eliminarRiesgo);
 router.get('/riesgos/:riesgo_id/planes-mitigacion', verificarToken, riesgoCtrl.listarPlanesMitigacion);
 router.post('/planes-mitigacion', verificarToken, riesgoCtrl.crearPlanMitigacion);
 

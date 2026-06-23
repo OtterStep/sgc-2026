@@ -23,6 +23,26 @@ export const crearRiesgo = async (req, res) => {
   }
 };
 
+export const actualizarRiesgo = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await Riesgo.update(req.body, { where: { id } });
+    res.json({ message: 'Riesgo actualizado' });
+  } catch (err) {
+    res.status(500).json({ error: formatError(err) });
+  }
+};
+
+export const eliminarRiesgo = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await Riesgo.destroy({ where: { id } });
+    res.json({ message: 'Riesgo eliminado' });
+  } catch (err) {
+    res.status(500).json({ error: formatError(err) });
+  }
+};
+
 export const listarPlanesMitigacion = async (req, res) => {
   try {
     const { riesgo_id } = req.params;

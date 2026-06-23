@@ -23,6 +23,27 @@ export const crearPlan = async (req, res) => {
   }
 };
 
+export const actualizarPlan = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const data = prepareCreateData(req.body, ['lider_id']);
+    await PlanAuditoria.update(data, { where: { id } });
+    res.json({ message: 'Plan actualizado' });
+  } catch (err) {
+    res.status(500).json({ error: formatError(err) });
+  }
+};
+
+export const eliminarPlan = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await PlanAuditoria.destroy({ where: { id } });
+    res.json({ message: 'Plan eliminado' });
+  } catch (err) {
+    res.status(500).json({ error: formatError(err) });
+  }
+};
+
 export const listarHallazgos = async (req, res) => {
   try {
     const { plan_id } = req.query;
@@ -75,6 +96,16 @@ export const cerrarHallazgo = async (req, res) => {
     const fechaHoy = new Date().toISOString().split('T')[0];
     await h.update({ estado: 'cerrado', fecha_cierre: fechaHoy, modificado_por: req.usuario.id });
     res.json({ mensaje: 'Hallazgo cerrado correctamente' });
+  } catch (err) {
+    res.status(500).json({ error: formatError(err) });
+  }
+};
+
+export const eliminarHallazgo = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await Hallazgo.destroy({ where: { id } });
+    res.json({ message: 'Hallazgo eliminado' });
   } catch (err) {
     res.status(500).json({ error: formatError(err) });
   }
