@@ -168,9 +168,9 @@ export default function MacroprocesosPage() {
                     <td className="px-6 py-4 text-sm text-slate-600">{mp.responsable?.nombres} {mp.responsable?.apellidos || '-'}</td>
                     <td className="px-6 py-4">
                       <span className={`px-2 py-1 text-xs rounded-full ${
-                        mp.estado === 'activo' ? 'bg-green-100 text-green-700' : 'bg-slate-200 text-slate-700'
+                        (mp.estado === true || mp.estado === 'activo') ? 'bg-green-100 text-green-700' : 'bg-slate-200 text-slate-700'
                       }`}>
-                        {mp.estado}
+                        {(mp.estado === true || mp.estado === 'activo') ? 'Activo' : 'Inactivo'}
                       </span>
                     </td>
                     <td className="px-6 py-4">
@@ -352,9 +352,9 @@ export default function MacroprocesosPage() {
                     <span className="text-sm text-slate-500 font-medium">Estado</span>
                     <p className="text-slate-800">
                       <span className={`px-2 py-1 text-xs rounded-full ${
-                        mpSeleccionado.estado === 'activo' ? 'bg-green-100 text-green-700' : 'bg-slate-200 text-slate-700'
+                        (mpSeleccionado.estado === true || mpSeleccionado.estado === 'activo') ? 'bg-green-100 text-green-700' : 'bg-slate-200 text-slate-700'
                       }`}>
-                        {mpSeleccionado.estado}
+                        {(mpSeleccionado.estado === true || mpSeleccionado.estado === 'activo') ? 'Activo' : 'Inactivo'}
                       </span>
                     </p>
                   </div>

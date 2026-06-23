@@ -44,6 +44,21 @@ export default function AcreditacionPage() {
     } catch (err) { swalError(err); }
   };
 
+  const handleEditarEstandar = (estandar) => {
+    swalSuccess('En construcción', 'La función de edición de estándares estará disponible pronto.');
+  };
+
+  const handleEliminarEstandar = async (id) => {
+    const confirmado = await swalConfirm('¿Estás seguro de eliminar este estándar?');
+    if (confirmado) {
+      try {
+        await axios.delete(`/api/v1/estandares/${id}`);
+        swalSuccess('Estándar eliminado correctamente');
+        cargarDatos();
+      } catch (err) { swalError(err); }
+    }
+  };
+
   const descargarReporte = async () => {
     try {
       const response = await axios.get('/api/v1/acreditacion/reporte', { responseType: 'blob' });
@@ -100,8 +115,8 @@ export default function AcreditacionPage() {
                   </div>
                   {['admin', 'gestor_calidad'].includes(usuario?.rol) && (
                     <div className="flex gap-2">
-                      <button className="flex-1 py-2 border border-amber-500 text-amber-600 rounded-lg hover:bg-amber-50 flex justify-center items-center gap-2 text-sm font-medium"><Edit size={16} /> Editar</button>
-                      <button className="flex-1 py-2 border border-red-500 text-red-600 rounded-lg hover:bg-red-50 flex justify-center items-center gap-2 text-sm font-medium"><Trash2 size={16} /> Eliminar</button>
+                      <button onClick={() => handleEditarEstandar(e)} className="flex-1 py-2 border border-amber-500 text-amber-600 rounded-lg hover:bg-amber-50 flex justify-center items-center gap-2 text-sm font-medium"><Edit size={16} /> Editar</button>
+                      <button onClick={() => handleEliminarEstandar(e.id)} className="flex-1 py-2 border border-red-500 text-red-600 rounded-lg hover:bg-red-50 flex justify-center items-center gap-2 text-sm font-medium"><Trash2 size={16} /> Eliminar</button>
                     </div>
                   )}
                 </div>
@@ -129,7 +144,7 @@ export default function AcreditacionPage() {
                 <div className="flex gap-2">
                   <button className="flex-1 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 text-sm font-medium">Ver Detalle</button>
                   {['admin', 'gestor_calidad'].includes(usuario?.rol) && (
-                    <button className="py-2 px-3 border border-red-500 text-red-600 rounded-lg hover:bg-red-50 text-sm font-medium"><Trash2 size={16} /></button>
+                    <button onClick={() => swalSuccess('En construcción', 'Eliminar autoevaluación pronto')} className="py-2 px-3 border border-red-500 text-red-600 rounded-lg hover:bg-red-50 text-sm font-medium"><Trash2 size={16} /></button>
                   )}
                 </div>
               </div>
