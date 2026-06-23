@@ -1,3 +1,4 @@
+//backend/src/models/index.js
 import { sequelize } from '../config/database.js';
 import { DataTypes, UUIDV4 } from 'sequelize';
 
@@ -43,7 +44,15 @@ export const Documento = sequelize.define('documentos', {
   tipo_documento_id: { type: DataTypes.INTEGER, allowNull: false },
   proceso_id: DataTypes.UUID,
   version_actual: { type: DataTypes.INTEGER, defaultValue: 1 },
-  estado: { type: DataTypes.STRING(20), defaultValue: 'borrador' },
+  estado: {
+    type: DataTypes.ENUM(
+      'borrador',
+      'en_revision',
+      'aprobado',
+      'archivado'
+    ),
+    defaultValue: 'borrador'
+  },
   contenido: DataTypes.TEXT,
   archivo_url: DataTypes.STRING(500),
   fecha_vigencia: DataTypes.DATEONLY,
@@ -364,7 +373,7 @@ export const PreguntaEncuesta = sequelize.define('preguntas_encuesta', {
   tipo: DataTypes.STRING(30),
   orden: { type: DataTypes.INTEGER, allowNull: false },
   obligatoria: { type: DataTypes.BOOLEAN, defaultValue: true },
-}, { tableName: 'preguntas_encuesta', schema: 'sgc', timestamps: true, createdAt: 'creado_en', updatedAt: 'modificado_en' });
+}, { tableName: 'preguntas_encuesta', schema: 'sgc', timestamps: true, createdAt: 'creado_en', updatedAt: false });
 
 // ==========================================
 // RESPUESTA ENCUESTA
@@ -405,6 +414,8 @@ VersionDocumento.belongsTo(Documento, { foreignKey: 'documento_id', as: 'documen
 Documento.hasMany(AprobacionDocumento, { foreignKey: 'documento_id', as: 'aprobaciones' });
 AprobacionDocumento.belongsTo(Documento, { foreignKey: 'documento_id', as: 'documento' });
 AprobacionDocumento.belongsTo(Usuario, { as: 'aprobador', foreignKey: 'aprobador_id' });
+// agregar en models/index.js, junto a las demás relaciones de Documento
+VersionDocumento.belongsTo(Usuario, { as: 'creadoPor', foreignKey: 'creado_por' });
 
 // Relaciones Flujo Trabajo
 FlujoTrabajo.belongsTo(Proceso, { foreignKey: 'proceso_id', as: 'proceso' });

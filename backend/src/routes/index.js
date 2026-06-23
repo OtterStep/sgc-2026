@@ -29,9 +29,13 @@ router.patch('/usuarios/:id/desactivar', verificarToken, verificarRol(['admin'])
 router.get('/documentos/reporte', verificarToken, docCtrl.generarReporteDocumentos);
 router.get('/documentos', verificarToken, docCtrl.listarDocumentos);
 router.get('/documentos/:id', verificarToken, docCtrl.obtenerDocumentoPorId);
+router.get('/documentos/:id/versiones', verificarToken, docCtrl.listarVersiones);
 router.post('/documentos', verificarToken, verificarRol(['admin', 'gestor_calidad']), docCtrl.crearDocumento);
 router.put('/documentos/:id', verificarToken, verificarRol(['admin', 'gestor_calidad']), docCtrl.actualizarDocumento);
-router.patch('/documentos/:id/archivar', verificarToken, verificarRol(['admin', 'gestor_calidad']), docCtrl.archivarDocumento);
+router.patch('/documentos/:id/enviar-revision', verificarToken, verificarRol(['admin', 'gestor_calidad']), docCtrl.enviarRevision);
+router.patch('/documentos/:id/aprobar', verificarToken, verificarRol(['admin', 'gestor_calidad']), docCtrl.aprobarDocumento);
+router.patch('/documentos/:id/devolver-borrador', verificarToken, verificarRol(['admin', 'gestor_calidad']), docCtrl.devolverBorrador);
+router.patch('/documentos/:id/obsoleto', verificarToken, verificarRol(['admin', 'gestor_calidad']), docCtrl.marcarObsoleto);
 router.get('/tipos-documento', verificarToken, docCtrl.listarTiposDocumento);
 
 // Procesos (Mapa de Procesos)
@@ -94,6 +98,10 @@ router.post('/mediciones', verificarToken, indCtrl.registrarMedicion);
 // Encuestas
 router.get('/encuestas', verificarToken, encCtrl.listarEncuestas);
 router.post('/encuestas', verificarToken, verificarRol(['admin', 'gestor_calidad']), encCtrl.crearEncuesta);
+router.put('/encuestas/:id', verificarToken, verificarRol(['admin', 'gestor_calidad']), encCtrl.actualizarEncuesta);
+router.patch('/encuestas/:id/estado', verificarToken, verificarRol(['admin', 'gestor_calidad']), encCtrl.cambiarEstado);
+router.post('/encuestas/:encuesta_id/preguntas', verificarToken, verificarRol(['admin', 'gestor_calidad']), encCtrl.gestionarPregunta);
+router.delete('/preguntas/:id', verificarToken, verificarRol(['admin', 'gestor_calidad']), encCtrl.eliminarPregunta);
 router.post('/encuestas/responder', verificarToken, encCtrl.enviarRespuesta);
 router.get('/encuestas/:id/resultados', verificarToken, encCtrl.obtenerResultados);
 
