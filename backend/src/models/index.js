@@ -330,12 +330,26 @@ export const MedicionIndicador = sequelize.define('mediciones_indicador', {
   id: { type: DataTypes.UUID, primaryKey: true, defaultValue: UUIDV4 },
   indicador_id: { type: DataTypes.UUID, allowNull: false },
   periodo: { type: DataTypes.STRING(20), allowNull: false },
+  fecha_medicion: { type: DataTypes.DATEONLY, defaultValue: DataTypes.NOW },
   valor_real: DataTypes.DECIMAL(10, 2),
   valor_esperado: DataTypes.DECIMAL(10, 2),
   cumplimiento: DataTypes.DECIMAL(5, 2),
   analisis_tendencia: DataTypes.TEXT,
   creado_por: DataTypes.UUID,
-}, { tableName: 'mediciones_indicador', schema: 'sgc', timestamps: true, createdAt: 'creado_en', updatedAt: 'modificado_en' });
+}, { tableName: 'mediciones_indicador', schema: 'sgc', timestamps: true, createdAt: 'creado_en', updatedAt: false });
+
+// ==========================================
+// PERIODO ACADEMICO
+// ==========================================
+export const PeriodoAcademico = sequelize.define('periodos_academicos', {
+  id: { type: DataTypes.UUID, primaryKey: true, defaultValue: UUIDV4 },
+  codigo: { type: DataTypes.STRING(20), unique: true, allowNull: false },
+  nombre: { type: DataTypes.STRING(100), allowNull: false },
+  fecha_inicio: { type: DataTypes.DATEONLY, allowNull: false },
+  fecha_fin: { type: DataTypes.DATEONLY, allowNull: false },
+  activo: { type: DataTypes.BOOLEAN, defaultValue: true },
+  creado_por: DataTypes.UUID,
+}, { tableName: 'periodos_academicos', schema: 'sgc', timestamps: true, createdAt: 'creado_en', updatedAt: false });
 
 // ==========================================
 // ENCUESTA
@@ -435,7 +449,9 @@ PlanMitigacion.belongsTo(Riesgo, { foreignKey: 'riesgo_id', as: 'riesgo' });
 PlanMitigacion.belongsTo(Usuario, { as: 'responsable', foreignKey: 'responsable_id' });
 
 Indicador.belongsTo(Proceso, { foreignKey: 'proceso_id', as: 'proceso' });
+Indicador.hasMany(MedicionIndicador, { foreignKey: 'indicador_id', as: 'mediciones' });
 MedicionIndicador.belongsTo(Indicador, { foreignKey: 'indicador_id', as: 'indicador' });
+PeriodoAcademico.belongsTo(Usuario, { as: 'creadoPor', foreignKey: 'creado_por' });
 
 Autoevaluacion.belongsTo(EstandarAcreditacion, { foreignKey: 'estandar_id', as: 'estandar' });
 EvaluacionCriterio.belongsTo(Autoevaluacion, { foreignKey: 'autoevaluacion_id', as: 'autoevaluacion' });

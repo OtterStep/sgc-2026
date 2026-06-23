@@ -353,10 +353,26 @@ CREATE TABLE mediciones_indicador (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     indicador_id UUID NOT NULL REFERENCES indicadores(id) ON DELETE CASCADE,
     periodo VARCHAR(20) NOT NULL,
+    fecha_medicion DATE DEFAULT CURRENT_DATE,
     valor_real DECIMAL(10,2),
     valor_esperado DECIMAL(10,2),
     cumplimiento DECIMAL(5,2), -- Porcentaje
     analisis_tendencia TEXT,
+    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    creado_por UUID REFERENCES usuarios(id)
+);
+
+-- ============================================================
+-- PERIODOS ACADÉMICOS
+-- ============================================================
+
+CREATE TABLE periodos_academicos (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    codigo VARCHAR(20) UNIQUE NOT NULL,
+    nombre VARCHAR(100) NOT NULL,
+    fecha_inicio DATE NOT NULL,
+    fecha_fin DATE NOT NULL,
+    activo BOOLEAN DEFAULT TRUE,
     creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     creado_por UUID REFERENCES usuarios(id)
 );
