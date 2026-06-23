@@ -12,6 +12,7 @@ import * as indCtrl from '../controllers/indicadorController.js';
 import * as encCtrl from '../controllers/encuestaController.js';
 import * as usrCtrl from '../controllers/usuarioController.js';
 import * as perCtrl from '../controllers/periodoController.js';
+import * as dashCtrl from '../controllers/dashboardController.js';
 
 const router = Router();
 
@@ -115,5 +116,8 @@ router.post('/encuestas/:encuesta_id/preguntas', verificarToken, verificarRol(['
 router.delete('/preguntas/:id', verificarToken, verificarRol(['admin', 'gestor_calidad']), encCtrl.eliminarPregunta);
 router.post('/encuestas/responder', verificarToken, encCtrl.enviarRespuesta);
 router.get('/encuestas/:id/resultados', verificarToken, encCtrl.obtenerResultados);
+
+// Dashboard
+router.get('/dashboard/estadisticas', verificarToken, dashCtrl.getEstadisticas);
 
 export default router;

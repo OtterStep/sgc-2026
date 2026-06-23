@@ -15,22 +15,15 @@ export default function Dashboard() {
   });
 
   useEffect(() => {
-    // En producción: Promise.all con endpoints reales
-    setEstadisticas({
-      documentos: 124, capas: 18, riesgos: 32, encuestas: 5,
-      indicadores: [
-        { nombre: 'Eficacia Docente', valor: 92 },
-        { nombre: 'Satisfacción', valor: 85 },
-        { nombre: 'Cumplimiento', valor: 96 },
-        { nombre: 'Acreditación', valor: 78 },
-      ],
-      satisfaccion: [
-        { name: 'Muy Satisfecho', value: 65 },
-        { name: 'Satisfecho', value: 25 },
-        { name: 'Neutral', value: 7 },
-        { name: 'Insatisfecho', value: 3 },
-      ]
-    });
+    const fetchStats = async () => {
+      try {
+        const { data } = await axios.get('/api/v1/dashboard/estadisticas');
+        setEstadisticas(data);
+      } catch (err) {
+        console.error('Error cargando estadísticas del dashboard:', err);
+      }
+    };
+    fetchStats();
   }, []);
 
   return (
