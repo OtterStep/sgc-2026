@@ -168,6 +168,7 @@ CREATE TABLE estandares_acreditacion (
     vigente_desde DATE,
     vigente_hasta DATE,
     creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    modificado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     creado_por UUID REFERENCES usuarios(id)
 );
 
@@ -179,7 +180,9 @@ CREATE TABLE factores_criterio (
     descripcion TEXT,
     peso DECIMAL(5,2),
     creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    creado_por UUID REFERENCES usuarios(id)
+    modificado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    creado_por UUID REFERENCES usuarios(id),
+    modificado_por UUID REFERENCES usuarios(id)
 );
 
 CREATE TABLE autoevaluaciones (
@@ -191,6 +194,7 @@ CREATE TABLE autoevaluaciones (
     estado VARCHAR(20) DEFAULT 'en_proceso' CHECK (estado IN ('en_proceso', 'completada', 'certificada')),
     puntaje_total DECIMAL(5,2),
     creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    modificado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     creado_por UUID REFERENCES usuarios(id)
 );
 
@@ -433,6 +437,23 @@ CREATE TABLE parametros_sistema (
 );
 
 -- ============================================================
+-- MAPA DE PROCESOS: CLASIFICACIÓN Y VERSIONES
+-- ============================================================
+
+ALTER TABLE sgc.macroprocesos ADD COLUMN IF NOT EXISTS clasificacion_mapa VARCHAR(20)
+    CHECK (clasificacion_mapa IN ('misional', 'soporte', 'estrategico'));
+
+CREATE TABLE IF NOT EXISTS sgc.versiones_mapa (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    numero_version INTEGER NOT NULL,
+    cambios_descripcion TEXT NOT NULL DEFAULT '',
+    datos JSONB NOT NULL,
+    activa BOOLEAN DEFAULT FALSE,
+    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    creado_por UUID REFERENCES sgc.usuarios(id)
+);
+
+-- ============================================================
 -- DATOS INICIALES
 -- ============================================================
 
@@ -448,7 +469,8 @@ INSERT INTO usuarios (codigo, nombres, apellidos, correo, contrasena_hash, rol, 
 
 INSERT INTO parametros_sistema (clave, valor, descripcion) VALUES
 ('institucion_nombre', 'Universidad Nacional de Trujillo', 'Nombre de la institución'),
-('version_sgc', '1.0.0', 'Versión actual del sistema');
+('version_sgc', '1.0.0', 'Versión actual del sistema'),
+('version_mapa_actual', '1', 'Versión actual del mapa de procesos');
 
 -- ============================================================
 -- FUNCIONES DE AUDITORÍA

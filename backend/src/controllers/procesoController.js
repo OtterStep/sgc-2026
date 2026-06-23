@@ -1,6 +1,7 @@
-import { Proceso, Macroproceso, ActividadProceso, Usuario } from '../models/index.js';
+import { Proceso, Macroproceso, ActividadProceso, Usuario, VersionMapa, ParametroSistema } from '../models/index.js';
 import { generarPDF } from '../services/pdfService.js';
 import { formatError, prepareCreateData } from '../utils/errorHandler.js';
+import { sequelize } from '../config/database.js';
 
 export const listarMacroprocesos = async (req, res) => {
   try {
@@ -179,6 +180,116 @@ export const reporteMapaProcesos = async (req, res) => {
     res.send(pdf);
   } catch (err) {
     console.error('Error en reporteMapaProcesos:', err);
+    res.status(500).json({ error: formatError(err) });
+  }
+};
+
+// ==========================================
+// MAPA DE PROCESOS - VERSIONES
+// ==========================================
+
+export const obtenerMapaActual = async (req, res) => {
+  try {
+    const param = await ParametroSistema.findOne({ where: { clave: 'version_mapa_actual' } });
+    const versionActual = parseInt(param?.valor || '1', 10);
+
+    const version = await VersionMapa.findOne({
+      where: { numero_version: versionActual, activa: true },
+      include: [{ model: Usuario, as: 'creadoPor', attributes: ['nombres', 'apellidos'] }],
+    });
+
+    if (version) {
+      return res.json({ version: version.numero_version, datos: version.datos, creado_en: version.creado_en, creado_por: version.creadoPor });
+    }
+
+    const macroprocesos = await Macroproceso.findAll({
+      where: { estado: true },
+      include: [{ model: Usuario, as: 'responsable', attributes: ['nombres', 'apellidos'] }],
+      order: [['codigo', 'ASC']],
+    });
+
+    return res.json({
+      version: 1,
+      datos: {
+        estrategicos: macroprocesos.filter(m => m.clasificacion_mapa === 'estrategico'),
+        misionales: macroprocesos.filter(m => m.clasificacion_mapa === 'misional'),
+        soporte: macroprocesos.filter(m => m.clasificacion_mapa === 'soporte'),
+        sin_clasificar: macroprocesos.filter(m => !m.clasificacion_mapa || !['estrategico', 'misional', 'soporte'].includes(m.clasificacion_mapa)),
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ error: formatError(err) });
+  }
+};
+
+export const listarVersionesMapa = async (req, res) => {
+  try {
+    const versiones = await VersionMapa.findAll({
+      include: [{ model: Usuario, as: 'creadoPor', attributes: ['nombres', 'apellidos'] }],
+      order: [['numero_version', 'DESC']],
+    });
+    res.json(versiones);
+  } catch (err) {
+    res.status(500).json({ error: formatError(err) });
+  }
+};
+
+export const crearNuevaVersionMapa = async (req, res) => {
+  const t = await sequelize.transaction();
+  try {
+    const { cambios_descripcion } = req.body;
+
+    const param = await ParametroSistema.findOne({
+      where: { clave: 'version_mapa_actual' },
+      transaction: t,
+    });
+
+    const versionActual = param ? parseInt(param.valor, 10) : 0;
+    const nuevaVersion = versionActual + 1;
+
+    const macroprocesos = await Macroproceso.findAll({
+      where: { estado: true },
+      include: [{ model: Usuario, as: 'responsable', attributes: ['nombres', 'apellidos'] }],
+      order: [['codigo', 'ASC']],
+      transaction: t,
+    });
+
+    const datos = {
+      estrategicos: macroprocesos.filter(m => m.clasificacion_mapa === 'estrategico'),
+      misionales: macroprocesos.filter(m => m.clasificacion_mapa === 'misional'),
+      soporte: macroprocesos.filter(m => m.clasificacion_mapa === 'soporte'),
+      sin_clasificar: macroprocesos.filter(m => !m.clasificacion_mapa || !['estrategico', 'misional', 'soporte'].includes(m.clasificacion_mapa)),
+    };
+
+    await VersionMapa.create({
+      numero_version: nuevaVersion,
+      cambios_descripcion: cambios_descripcion || `Versión ${nuevaVersion} del mapa de procesos`,
+      datos,
+      activa: true,
+      creado_por: req.usuario.id,
+    }, { transaction: t });
+
+    if (versionActual > 0) {
+      await VersionMapa.update(
+        { activa: false },
+        { where: { numero_version: versionActual }, transaction: t }
+      );
+    }
+
+    if (param) {
+      await param.update({ valor: String(nuevaVersion) }, { transaction: t });
+    } else {
+      await ParametroSistema.create({
+        clave: 'version_mapa_actual',
+        valor: String(nuevaVersion),
+        descripcion: 'Versión actual del mapa de procesos',
+      }, { transaction: t });
+    }
+
+    await t.commit();
+    res.status(201).json({ message: 'Nueva versión publicada', version: nuevaVersion });
+  } catch (err) {
+    await t.rollback();
     res.status(500).json({ error: formatError(err) });
   }
 };

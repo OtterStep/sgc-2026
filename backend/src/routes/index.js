@@ -57,6 +57,11 @@ router.patch('/procesos/:id/desactivar', verificarToken, verificarRol(['admin', 
 router.get('/procesos/:proceso_id/actividades', verificarToken, procCtrl.listarActividades);
 router.post('/actividades', verificarToken, verificarRol(['admin', 'gestor_calidad']), procCtrl.crearActividad);
 
+// Mapa de Procesos - Versiones
+router.get('/mapa/actual', verificarToken, procCtrl.obtenerMapaActual);
+router.get('/mapa/versiones', verificarToken, procCtrl.listarVersionesMapa);
+router.post('/mapa/nueva-version', verificarToken, verificarRol(['admin', 'gestor_calidad']), procCtrl.crearNuevaVersionMapa);
+
 // Acreditación
 router.get('/acreditacion/reporte', verificarToken, acrCtrl.reporteAcreditacion);
 router.get('/estandares', verificarToken, acrCtrl.listarEstandares);

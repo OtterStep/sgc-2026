@@ -98,6 +98,7 @@ export const Macroproceso = sequelize.define('macroprocesos', {
   descripcion: DataTypes.TEXT,
   responsable_id: DataTypes.UUID,
   tipo: DataTypes.STRING(30),
+  clasificacion_mapa: DataTypes.STRING(20),
   estado: { type: DataTypes.BOOLEAN, defaultValue: true },
   creado_por: DataTypes.UUID,
   modificado_por: DataTypes.UUID,
@@ -148,6 +149,18 @@ export const FlujoTrabajo = sequelize.define('flujos_trabajo', {
   activo: { type: DataTypes.BOOLEAN, defaultValue: true },
   creado_por: DataTypes.UUID,
 }, { tableName: 'flujos_trabajo', schema: 'sgc', timestamps: true, createdAt: 'creado_en', updatedAt: false });
+
+// ==========================================
+// VERSION MAPA DE PROCESOS
+// ==========================================
+export const VersionMapa = sequelize.define('versiones_mapa', {
+  id: { type: DataTypes.UUID, primaryKey: true, defaultValue: UUIDV4 },
+  numero_version: { type: DataTypes.INTEGER, allowNull: false },
+  cambios_descripcion: { type: DataTypes.TEXT, allowNull: false },
+  datos: { type: DataTypes.JSONB, allowNull: false },
+  activa: { type: DataTypes.BOOLEAN, defaultValue: false },
+  creado_por: DataTypes.UUID,
+}, { tableName: 'versiones_mapa', schema: 'sgc', timestamps: true, createdAt: 'creado_en', updatedAt: false });
 
 // ==========================================
 // ESTANDAR ACREDITACION
@@ -430,6 +443,9 @@ AprobacionDocumento.belongsTo(Documento, { foreignKey: 'documento_id', as: 'docu
 AprobacionDocumento.belongsTo(Usuario, { as: 'aprobador', foreignKey: 'aprobador_id' });
 // agregar en models/index.js, junto a las demás relaciones de Documento
 VersionDocumento.belongsTo(Usuario, { as: 'creadoPor', foreignKey: 'creado_por' });
+
+// Relaciones VersionMapa
+VersionMapa.belongsTo(Usuario, { as: 'creadoPor', foreignKey: 'creado_por' });
 
 // Relaciones Flujo Trabajo
 FlujoTrabajo.belongsTo(Proceso, { foreignKey: 'proceso_id', as: 'proceso' });
