@@ -7,6 +7,7 @@ import {
   Trash2, PencilLine, Eye, CheckCircle2, Lock, X, GripVertical,
   ToggleLeft, ToggleRight, Calendar, Users, FileText, Settings,
 } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { swalError, swalSuccess } from '@/lib/swal';
 
 // ─────────────────────────────────────────────
@@ -238,9 +239,108 @@ function ModalEncuesta({ encuesta, onClose, onSaved }) {
 // ─────────────────────────────────────────────
 // VISTA RESULTADOS (página completa, no modal)
 // ─────────────────────────────────────────────
+const PIE_COLORS = ['#10b981', '#ef4444'];
+
+const CHART_TIPO_VISTA = { barras: 'Barras', tabla: 'Tabla' };
+
+function ParticipationChart({ respondentes, esperado }) {
+  const data = [
+    { name: 'Respondieron', value: respondentes, fill: '#3b82f6' },
+    { name: 'Pendientes', value: Math.max(0, esperado - respondentes), fill: '#e2e8f0' },
+  ];
+
+  return (
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
+      <h4 className="text-sm font-semibold text-slate-700 mb-4 flex items-center gap-2">
+        <Users size={16} /> Participación
+      </h4>
+      <div className="flex items-center gap-6">
+        <ResponsiveContainer width={160} height={160}>
+          <PieChart>
+            <Pie data={data} innerRadius={50} outerRadius={70} dataKey="value" startAngle={90} endAngle={-270}>
+              {data.map((e, i) => <Cell key={i} fill={e.fill} />)}
+            </Pie>
+          </PieChart>
+        </ResponsiveContainer>
+        <div className="space-y-3">
+          <div>
+            <p className="text-3xl font-bold text-blue-600">{respondentes}</p>
+            <p className="text-xs text-slate-500">de {esperado} esperados</p>
+          </div>
+          <div className="h-2 w-32 bg-slate-100 rounded-full overflow-hidden">
+            <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${esperado > 0 ? Math.round((respondentes / esperado) * 100) : 0}%` }} />
+          </div>
+          <p className="text-xs font-medium text-slate-600">
+            {esperado > 0 ? Math.round((respondentes / esperado) * 100) : 0}% de participación
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LikertChart({ distribucion, total }) {
+  const data = Object.entries(distribucion || {})
+    .sort((a, b) => Number(a[0]) - Number(b[0]))
+    .map(([v, c]) => ({ valor: v, conteo: c, pct: total > 0 ? Math.round((c / total) * 100) : 0 }));
+
+  if (data.length === 0) return <p className="text-sm text-slate-400 italic">Sin respuestas aún.</p>;
+
+  return (
+    <div className="mt-2">
+      <ResponsiveContainer width="100%" height={Math.max(120, data.length * 40)}>
+        <BarChart data={data} layout="vertical" margin={{ left: 10, right: 30, top: 5, bottom: 5 }}>
+          <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+          <XAxis type="number" tick={{ fontSize: 12 }} />
+          <YAxis dataKey="valor" type="category" tick={{ fontSize: 12 }} width={30} />
+          <Tooltip formatter={(value, name) => [value, 'Respuestas']} />
+          <Bar dataKey="conteo" fill="#3b82f6" radius={[0, 4, 4, 0]} />
+        </BarChart>
+      </ResponsiveContainer>
+      <div className="flex justify-center gap-4 mt-2 text-xs text-slate-500">
+        {data.map(d => (
+          <span key={d.valor} className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded bg-blue-500 inline-block" /> {d.valor}: {d.conteo} ({d.pct}%)
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SiNoChart({ si, no, total }) {
+  const data = [
+    { name: 'Sí', value: si || 0, fill: '#10b981' },
+    { name: 'No', value: no || 0, fill: '#ef4444' },
+  ];
+
+  return (
+    <div className="flex items-center gap-6 mt-3">
+      <ResponsiveContainer width={120} height={120}>
+        <PieChart>
+          <Pie data={data} innerRadius={30} outerRadius={50} dataKey="value" paddingAngle={2}>
+            {data.map((e, i) => <Cell key={i} fill={e.fill} />)}
+          </Pie>
+        </PieChart>
+      </ResponsiveContainer>
+      <div className="flex gap-4">
+        <div className="bg-emerald-50 rounded-xl px-5 py-3 text-center border border-emerald-100 min-w-[80px]">
+          <p className="text-2xl font-bold text-emerald-600">{si || 0}</p>
+          <p className="text-xs text-emerald-600 font-medium">Sí ({total > 0 ? Math.round(((si || 0) / total) * 100) : 0}%)</p>
+        </div>
+        <div className="bg-red-50 rounded-xl px-5 py-3 text-center border border-red-100 min-w-[80px]">
+          <p className="text-2xl font-bold text-red-500">{no || 0}</p>
+          <p className="text-xs text-red-500 font-medium">No ({total > 0 ? Math.round(((no || 0) / total) * 100) : 0}%)</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function VistaResultados({ encuestaId, onVolver }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [vistaPreg, setVistaPreg] = useState({});
 
   useEffect(() => {
     axios.get(`/api/v1/encuestas/${encuestaId}/resultados`)
@@ -262,18 +362,16 @@ function VistaResultados({ encuestaId, onVolver }) {
 
   if (!data) return null;
 
-  const { encuesta, total_respondentes, resultados } = data;
+  const { encuesta, total_respondentes, total_esperado, resultados } = data;
 
   return (
-    <div className="max-w-3xl mx-auto">
-      {/* Breadcrumb / volver */}
+    <div className="max-w-4xl mx-auto">
       <button onClick={onVolver}
         className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-800 mb-6 group">
         <ChevronDown size={15} className="rotate-90 group-hover:-translate-x-0.5 transition-transform" />
         Volver a encuestas
       </button>
 
-      {/* Header de la encuesta */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
         <div className="flex items-start justify-between">
           <div>
@@ -289,11 +387,14 @@ function VistaResultados({ encuestaId, onVolver }) {
           <span className={badge(encuesta.estado)}>{encuesta.estado}</span>
         </div>
 
-        {/* Métricas resumen */}
-        <div className="mt-5 grid grid-cols-3 gap-4">
+        <div className="mt-5 grid grid-cols-4 gap-4">
           <div className="bg-blue-50 rounded-xl p-4 text-center">
             <p className="text-3xl font-bold text-blue-600">{total_respondentes}</p>
             <p className="text-xs text-blue-500 mt-1 font-medium">Respondentes</p>
+          </div>
+          <div className="bg-emerald-50 rounded-xl p-4 text-center">
+            <p className="text-3xl font-bold text-emerald-600">{total_esperado ?? '—'}</p>
+            <p className="text-xs text-emerald-500 mt-1 font-medium">Esperados</p>
           </div>
           <div className="bg-slate-50 rounded-xl p-4 text-center">
             <p className="text-3xl font-bold text-slate-700">{resultados.length}</p>
@@ -308,82 +409,78 @@ function VistaResultados({ encuestaId, onVolver }) {
         </div>
       </div>
 
-      {/* Resultados por pregunta */}
+      {total_esperado > 0 && <ParticipationChart respondentes={total_respondentes} esperado={total_esperado} />}
+
       <div className="space-y-4">
-        {resultados.map((r, i) => (
-          <div key={r.pregunta_id} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-            {/* Cabecera pregunta */}
-            <div className="flex items-start justify-between mb-1">
-              <p className="text-sm font-semibold text-slate-800 leading-snug">
-                <span className="text-blue-500 mr-1.5">{i + 1}.</span>{r.texto}
-              </p>
-              <span className="ml-3 shrink-0 text-xs px-2.5 py-0.5 bg-blue-50 text-blue-600 rounded-full font-medium">
-                {TIPO_LABELS[r.tipo]}
-              </span>
-            </div>
-            <p className="text-xs text-slate-400 mb-4">
-              {r.total} respuesta{r.total !== 1 ? 's' : ''}
-            </p>
-
-            {/* Likert / Numérica → barras + promedio */}
-            {['likert_5', 'likert_7', 'numerica'].includes(r.tipo) && (
-              <>
-                {r.promedio !== null && (
-                  <div className="flex items-baseline gap-2 mb-4">
-                    <span className="text-3xl font-bold text-blue-600">{r.promedio}</span>
-                    <span className="text-sm text-slate-500">
-                      promedio de {r.tipo === 'likert_5' ? '5' : r.tipo === 'likert_7' ? '7' : '—'}
-                    </span>
-                  </div>
-                )}
-                {r.distribucion && Object.keys(r.distribucion).length > 0 ? (
-                  <div className="space-y-2">
-                    {Object.entries(r.distribucion)
-                      .sort((a, b) => Number(a[0]) - Number(b[0]))
-                      .map(([v, c]) => (
-                        <BarraDistribucion key={v} valor={v} conteo={c} total={r.total}
-                          max={Math.max(...Object.values(r.distribucion))} />
-                      ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-slate-400 italic">Sin respuestas aún.</p>
-                )}
-              </>
-            )}
-
-            {/* Sí / No → tarjetas con conteo real */}
-            {r.tipo === 'si_no' && (
-              <div className="flex gap-4">
-                <div className="flex-1 bg-emerald-50 rounded-xl p-4 text-center border border-emerald-100">
-                  <p className="text-3xl font-bold text-emerald-600">{r.si ?? 0}</p>
-                  <p className="text-xs text-emerald-600 font-medium mt-1">
-                    Sí · {r.total > 0 ? Math.round(((r.si ?? 0) / r.total) * 100) : 0}%
-                  </p>
-                </div>
-                <div className="flex-1 bg-red-50 rounded-xl p-4 text-center border border-red-100">
-                  <p className="text-3xl font-bold text-red-500">{r.no ?? 0}</p>
-                  <p className="text-xs text-red-500 font-medium mt-1">
-                    No · {r.total > 0 ? Math.round(((r.no ?? 0) / r.total) * 100) : 0}%
-                  </p>
-                </div>
+        {resultados.map((r, i) => {
+          const vp = vistaPreg[r.pregunta_id] || 'barras';
+          return (
+            <div key={r.pregunta_id} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+              <div className="flex items-start justify-between mb-1">
+                <p className="text-sm font-semibold text-slate-800 leading-snug">
+                  <span className="text-blue-500 mr-1.5">{i + 1}.</span>{r.texto}
+                </p>
+                <span className="ml-3 shrink-0 text-xs px-2.5 py-0.5 bg-blue-50 text-blue-600 rounded-full font-medium">
+                  {TIPO_LABELS[r.tipo]}
+                </span>
               </div>
-            )}
+              <p className="text-xs text-slate-400 mb-3">
+                {r.total} respuesta{r.total !== 1 ? 's' : ''}
+                {r.promedio !== null && (r.tipo === 'likert_5' || r.tipo === 'likert_7') && (
+                  <span className="ml-3 font-semibold text-blue-600">Promedio: {r.promedio}</span>
+                )}
+              </p>
 
-            {/* Abierta → lista de textos */}
-            {r.tipo === 'abierta' && (
-              <ul className="space-y-2">
-                {(r.respuestas_texto ?? []).length > 0
-                  ? r.respuestas_texto.map((t, j) => (
-                      <li key={j} className="text-sm text-slate-700 bg-slate-50 rounded-xl px-4 py-2.5 border border-slate-200">
-                        "{t}"
-                      </li>
-                    ))
-                  : <li className="text-sm text-slate-400 italic">Sin respuestas abiertas aún.</li>
-                }
-              </ul>
-            )}
-          </div>
-        ))}
+              {['likert_5', 'likert_7', 'numerica'].includes(r.tipo) && (
+                <>
+                  {r.distribucion && Object.keys(r.distribucion).length > 0 ? (
+                    <div>
+                      <div className="flex gap-1 mb-2">
+                        <button onClick={() => setVistaPreg({ ...vistaPreg, [r.pregunta_id]: 'barras' })}
+                          className={`text-xs px-2 py-1 rounded ${vp === 'barras' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-500'}`}>
+                          Gráfico
+                        </button>
+                        <button onClick={() => setVistaPreg({ ...vistaPreg, [r.pregunta_id]: 'tabla' })}
+                          className={`text-xs px-2 py-1 rounded ${vp === 'tabla' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-500'}`}>
+                          Tabla
+                        </button>
+                      </div>
+                      {vp === 'barras' ? (
+                        <LikertChart distribucion={r.distribucion} total={r.total} />
+                      ) : (
+                        <div className="space-y-2 mt-2">
+                          {Object.entries(r.distribucion)
+                            .sort((a, b) => Number(a[0]) - Number(b[0]))
+                            .map(([v, c]) => (
+                              <BarraDistribucion key={v} valor={v} conteo={c} total={r.total}
+                                max={Math.max(...Object.values(r.distribucion))} />
+                            ))}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-slate-400 italic">Sin respuestas aún.</p>
+                  )}
+                </>
+              )}
+
+              {r.tipo === 'si_no' && <SiNoChart si={r.si} no={r.no} total={r.total} />}
+
+              {r.tipo === 'abierta' && (
+                <ul className="space-y-2">
+                  {(r.respuestas_texto ?? []).length > 0
+                    ? r.respuestas_texto.map((t, j) => (
+                        <li key={j} className="text-sm text-slate-700 bg-slate-50 rounded-xl px-4 py-2.5 border border-slate-200">
+                          &ldquo;{t}&rdquo;
+                        </li>
+                      ))
+                    : <li className="text-sm text-slate-400 italic">Sin respuestas abiertas aún.</li>
+                  }
+                </ul>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

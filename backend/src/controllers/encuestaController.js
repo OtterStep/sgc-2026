@@ -1,4 +1,4 @@
-import { Op } from 'sequelize';
+import { Op, fn, col } from 'sequelize';
 import { Encuesta, PreguntaEncuesta, RespuestaEncuesta, Usuario } from '../models/index.js';
 import { formatError } from '../utils/errorHandler.js';
 
@@ -278,10 +278,7 @@ export const obtenerResultados = async (req, res) => {
       where: { encuesta_id: id },
     });
 
-    // Contar respondentes únicos.
-    // Para encuestas anónimas (usuario_id = null) contamos sesiones únicas
-    // agrupando por enviado_en truncado al minuto — pero lo más fiable es
-    // dividir el total de filas entre el número de preguntas.
+    // Contar respondentes únicos
     const totalPreguntas = encuesta.preguntas.length;
     const identificados = new Set(
       todasRespuestas.filter((r) => r.usuario_id).map((r) => r.usuario_id)
@@ -291,6 +288,15 @@ export const obtenerResultados = async (req, res) => {
       : totalPreguntas > 0
         ? Math.round(todasRespuestas.length / totalPreguntas)
         : 0;
+
+    // Contar usuarios potenciales según dirigido_a
+    const rolMap = { estudiantes: 'estudiante', docentes: 'docente', egresados: 'egresado', administrativos: 'administrativo' };
+    const rolWhere = rolMap[encuesta.dirigido_a];
+    const totalEsperado = rolWhere
+      ? await Usuario.count({ where: { rol: rolWhere, activo: true } })
+      : rolMap[encuesta.dirigido_a] === undefined && encuesta.dirigido_a !== 'todos'
+        ? 0
+        : await Usuario.count({ where: { activo: true } });
 
     const resultadosPorPregunta = encuesta.preguntas.map((pregunta) => {
       const rPreg = todasRespuestas.filter((r) => r.pregunta_id === pregunta.id);
@@ -338,6 +344,7 @@ export const obtenerResultados = async (req, res) => {
         fecha_fin: encuesta.fecha_fin,
       },
       total_respondentes: totalRespondentes,
+      total_esperado: totalEsperado,
       resultados: resultadosPorPregunta,
     });
   } catch (err) {

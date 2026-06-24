@@ -442,18 +442,100 @@ const seed = async () => {
     console.log('✅ Preguntas de encuesta creadas');
 
     // ==========================================
-    // 23. RESPUESTAS (algunas de ejemplo)
+    // 23. USUARIOS DE PRUEBA (estudiantes y egresados)
     // ==========================================
-    const pregEnc1 = await PreguntaEncuesta.findAll({ where: { encuesta_id: encMap['ENC-001'].id } });
-    if (pregEnc1.length > 0 && estudiante) {
-      for (const p of pregEnc1.filter(pq => pq.tipo === 'likert_5')) {
-        await RespuestaEncuesta.findOrCreate({
-          where: { encuesta_id: encMap['ENC-001'].id, pregunta_id: p.id, usuario_id: estudiante.id },
-          defaults: { encuesta_id: encMap['ENC-001'].id, pregunta_id: p.id, usuario_id: estudiante.id, valor_numerico: Math.floor(Math.random() * 3) + 3 },
-        });
+    const testUsuariosData = [
+      { codigo: 'EST-001', nombres: 'Carlos', apellidos: 'García López', correo: 'cgarcia@unitru.edu.pe', rol: 'estudiante', facultad: 'Ingeniería', escuela: 'Sistemas', activo: true },
+      { codigo: 'EST-002', nombres: 'María', apellidos: 'Torres Pérez', correo: 'mtorres@unitru.edu.pe', rol: 'estudiante', facultad: 'Ciencias', escuela: 'Matemáticas', activo: true },
+      { codigo: 'EST-003', nombres: 'Luis', apellidos: 'Ramírez Díaz', correo: 'lramirez@unitru.edu.pe', rol: 'estudiante', facultad: 'Ingeniería', escuela: 'Industrial', activo: true },
+      { codigo: 'EST-004', nombres: 'Ana', apellidos: 'Mendoza Ríos', correo: 'amendoza@unitru.edu.pe', rol: 'estudiante', facultad: 'Ciencias Sociales', escuela: 'Derecho', activo: true },
+      { codigo: 'EST-005', nombres: 'Pedro', apellidos: 'Castro Silva', correo: 'pcastro@unitru.edu.pe', rol: 'estudiante', facultad: 'Ingeniería', escuela: 'Civil', activo: true },
+      { codigo: 'EST-006', nombres: 'Rosa', apellidos: 'Huamán Quispe', correo: 'rhuaman@unitru.edu.pe', rol: 'egresado', facultad: 'Ingeniería', escuela: 'Sistemas', activo: true },
+      { codigo: 'EST-007', nombres: 'José', apellidos: 'Vega Castillo', correo: 'jvega@unitru.edu.pe', rol: 'egresado', facultad: 'Ciencias', escuela: 'Contabilidad', activo: true },
+      { codigo: 'EST-008', nombres: 'Lucía', apellidos: 'Flores Paredes', correo: 'lflores@unitru.edu.pe', rol: 'egresado', facultad: 'Ingeniería', escuela: 'Industrial', activo: true },
+    ];
+    const testUsuarios = {};
+    for (const d of testUsuariosData) {
+      const [u] = await Usuario.findOrCreate({ where: { codigo: d.codigo }, defaults: { ...d, contrasena_hash: '$2a$10$WIJEFhvFbf5JcxVSHvevROXEIkk7EM6rFPfUIPQvyCoXfC.FxPjRm' } });
+      testUsuarios[d.codigo] = u;
+    }
+    console.log('✅ Usuarios de prueba creados');
+
+    // ==========================================
+    // 24. RESPUESTAS ENCUESTA — Satisfacción Estudiantil (ENC-001)
+    // ==========================================
+    const pregEnc1 = await PreguntaEncuesta.findAll({ where: { encuesta_id: encMap['ENC-001'].id }, order: [['orden', 'ASC']] });
+    const estudiantesList = Object.values(testUsuarios).filter(u => u.rol === 'estudiante');
+    if (pregEnc1.length > 0 && estudiantesList.length > 0) {
+      const likertData = [
+        { estudiante: estudiantesList[0], valores: [4, 3, 2, 4], texto: 'Mejorar los laboratorios de cómputo.' },
+        { estudiante: estudiantesList[1], valores: [5, 4, 3, 5], texto: 'Incluir más prácticas preprofesionales.' },
+        { estudiante: estudiantesList[2], valores: [3, 4, 4, 3], texto: 'Actualizar el plan de estudios.' },
+        { estudiante: estudiantesList[3], valores: [4, 5, 2, 4], texto: 'Más becas y apoyo económico.' },
+        { estudiante: estudiantesList[4], valores: [2, 3, 1, 3], texto: 'Falta mantenimiento en aulas.' },
+      ];
+      for (const entry of likertData) {
+        const pregLikert = pregEnc1.filter(p => p.tipo === 'likert_5').sort((a, b) => a.orden - b.orden);
+        for (let i = 0; i < pregLikert.length; i++) {
+          await RespuestaEncuesta.findOrCreate({
+            where: { encuesta_id: encMap['ENC-001'].id, pregunta_id: pregLikert[i].id, usuario_id: entry.estudiante.id },
+            defaults: { encuesta_id: encMap['ENC-001'].id, pregunta_id: pregLikert[i].id, usuario_id: entry.estudiante.id, valor_numerico: entry.valores[i] },
+          });
+        }
+        const pregAbierta = pregEnc1.find(p => p.tipo === 'abierta');
+        if (pregAbierta) {
+          await RespuestaEncuesta.findOrCreate({
+            where: { encuesta_id: encMap['ENC-001'].id, pregunta_id: pregAbierta.id, usuario_id: entry.estudiante.id },
+            defaults: { encuesta_id: encMap['ENC-001'].id, pregunta_id: pregAbierta.id, usuario_id: entry.estudiante.id, valor_texto: entry.texto },
+          });
+        }
       }
     }
-    console.log('✅ Respuestas de encuesta creadas');
+    console.log('✅ Respuestas ENC-001 creadas');
+
+    // ==========================================
+    // 25. RESPUESTAS ENCUESTA — Egresados (ENC-003)
+    // ==========================================
+    const pregEnc3 = await PreguntaEncuesta.findAll({ where: { encuesta_id: encMap['ENC-003'].id }, order: [['orden', 'ASC']] });
+    const egresadosList = Object.values(testUsuarios).filter(u => u.rol === 'egresado');
+    if (pregEnc3.length > 0 && egresadosList.length > 0) {
+      const egresadoData = [
+        { egresado: egresadosList[0], si_no: [1, 1], likert: 4, tiempo: 'Menos de 3 meses', texto: 'Fortalecer convenios empresariales.' },
+        { egresado: egresadosList[1], si_no: [0, 1], likert: 3, tiempo: 'De 6 a 12 meses', texto: 'Incluir certificaciones internacionales.' },
+        { egresado: egresadosList[2], si_no: [1, 0], likert: 5, tiempo: 'De 3 a 6 meses', texto: 'Más enfoque en habilidades blandas.' },
+      ];
+      const pregSiNo = pregEnc3.filter(p => p.tipo === 'si_no').sort((a, b) => a.orden - b.orden);
+      const pregLikert = pregEnc3.find(p => p.tipo === 'likert_5');
+      const pregMultiple = pregEnc3.find(p => p.tipo === 'multiple');
+      const pregAbierta = pregEnc3.find(p => p.tipo === 'abierta');
+      for (const entry of egresadoData) {
+        for (let i = 0; i < pregSiNo.length; i++) {
+          await RespuestaEncuesta.findOrCreate({
+            where: { encuesta_id: encMap['ENC-003'].id, pregunta_id: pregSiNo[i].id, usuario_id: entry.egresado.id },
+            defaults: { encuesta_id: encMap['ENC-003'].id, pregunta_id: pregSiNo[i].id, usuario_id: entry.egresado.id, valor_numerico: entry.si_no[i] },
+          });
+        }
+        if (pregLikert) {
+          await RespuestaEncuesta.findOrCreate({
+            where: { encuesta_id: encMap['ENC-003'].id, pregunta_id: pregLikert.id, usuario_id: entry.egresado.id },
+            defaults: { encuesta_id: encMap['ENC-003'].id, pregunta_id: pregLikert.id, usuario_id: entry.egresado.id, valor_numerico: entry.likert },
+          });
+        }
+        if (pregMultiple) {
+          await RespuestaEncuesta.findOrCreate({
+            where: { encuesta_id: encMap['ENC-003'].id, pregunta_id: pregMultiple.id, usuario_id: entry.egresado.id },
+            defaults: { encuesta_id: encMap['ENC-003'].id, pregunta_id: pregMultiple.id, usuario_id: entry.egresado.id, valor_texto: entry.tiempo },
+          });
+        }
+        if (pregAbierta) {
+          await RespuestaEncuesta.findOrCreate({
+            where: { encuesta_id: encMap['ENC-003'].id, pregunta_id: pregAbierta.id, usuario_id: entry.egresado.id },
+            defaults: { encuesta_id: encMap['ENC-003'].id, pregunta_id: pregAbierta.id, usuario_id: entry.egresado.id, valor_texto: entry.texto },
+          });
+        }
+      }
+    }
+    console.log('✅ Respuestas ENC-003 creadas');
 
     console.log('');
     console.log('🎉 SEED COMPLETADO SATISFACTORIAMENTE');
