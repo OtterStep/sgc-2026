@@ -59,7 +59,7 @@ export const desactivarMacroproceso = async (req, res) => {
     if (!mp) {
       return res.status(404).json({ error: 'Macroproceso no encontrado' });
     }
-    await mp.update({ estado: 'inactivo', modificado_por: req.usuario.id });
+    await mp.update({ estado: false, modificado_por: req.usuario.id });
     res.json({ message: 'Macroproceso desactivado correctamente' });
   } catch (err) {
     res.status(500).json({ error: formatError(err) });

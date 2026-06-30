@@ -2,9 +2,10 @@
 import Sidebar from '@/components/layout/Sidebar';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { GitBranch, Plus, Download, Search, Edit, Eye, EyeOff, LayoutDashboard, List, History, Upload, Tag, X, Layers, User, Hash, FileText } from 'lucide-react';
+import { GitBranch, Plus, Download, Search, Edit, Eye, EyeOff, LayoutDashboard, List, History, Upload, Tag, X, Layers, User, Hash, FileText, ListOrdered } from 'lucide-react';
 import { swalError, swalSuccess, swalConfirm } from '@/lib/swal';
 import { useAuth } from '@/context/AuthContext';
+import ActividadesPanel from '@/components/procesos/ActividadesPanel';
 
 const CLASIFICACIONES = [
   { value: 'estrategico', label: 'Estratégicos', color: 'border-l-blue-500 bg-blue-50', bg: 'bg-blue-100 text-blue-700' },
@@ -338,6 +339,9 @@ export default function ProcesosPage() {
           <button onClick={() => setMostrarModalVer(true)} className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-white text-slate-600 border border-slate-200 hover:bg-slate-50">
             <History size={16} /> Versiones
           </button>
+          <button onClick={() => setVista('actividades')} className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${vista === 'actividades' ? 'bg-blue-600 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'}`}>
+            <ListOrdered size={16} /> Actividades
+          </button>
         </div>
 
         {vista === 'diagrama' && renderDiagrama()}
@@ -453,6 +457,14 @@ export default function ProcesosPage() {
               </table>
             </div>
           </div>
+        )}
+
+        {vista === 'actividades' && (
+          <ActividadesPanel
+            procesos={procesos}
+            usuarios={usuarios}
+            puedeEditar={['admin', 'gestor_calidad'].includes(usuario?.rol)}
+          />
         )}
 
         {/* Modal Crear/Editar Macroproceso */}

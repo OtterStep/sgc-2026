@@ -11,7 +11,6 @@ const menuItems = [
   { href: '/perfil', label: 'Mi Perfil', icon: User, roles: ['admin', 'gestor_calidad', 'auditor', 'docente', 'estudiante', 'egresado', 'invitado'] },
   { href: '/dashboard', label: 'Dashboard', icon: Home, roles: ['admin', 'gestor_calidad', 'auditor', 'docente', 'estudiante', 'egresado', 'invitado'] },
   { href: '/documentos', label: 'Gestión Documental', icon: FileText, roles: ['admin', 'gestor_calidad', 'auditor', 'docente', 'estudiante', 'egresado'] },
-  { href: '/macroprocesos', label: 'Macroprocesos', icon: GitBranch, roles: ['admin', 'gestor_calidad', 'auditor', 'docente', 'estudiante'] },
   { href: '/procesos', label: 'Mapa de Procesos', icon: GitBranch, roles: ['admin', 'gestor_calidad', 'auditor', 'docente', 'estudiante'] },
   { href: '/acreditacion', label: 'Acreditación', icon: Award, roles: ['admin', 'gestor_calidad', 'auditor', 'docente'] },
   { href: '/auditorias', label: 'Auditorías', icon: Search, roles: ['admin', 'gestor_calidad', 'auditor'] },

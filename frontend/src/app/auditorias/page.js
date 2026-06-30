@@ -81,8 +81,8 @@ export default function AuditoriasPage() {
   };
 
   const eliminarPlan = async (id) => {
-    const confirmado = await swalConfirm('¿Estás seguro de eliminar este Plan de Auditoría?');
-    if (confirmado) {
+    const result = await swalConfirm('¿Estás seguro de eliminar este Plan de Auditoría?');
+    if (result.isConfirmed) {                          // <-- Usar result.isConfirmed
       try {
         await axios.delete(`/api/v1/planes-auditoria/${id}`);
         swalSuccess('Plan eliminado correctamente');
@@ -138,8 +138,8 @@ export default function AuditoriasPage() {
   };
 
   const eliminarHallazgo = async (id) => {
-    const confirmado = await swalConfirm('¿Estás seguro de eliminar este Hallazgo?');
-    if (confirmado) {
+    const result = await swalConfirm('¿Estás seguro de eliminar este Hallazgo?');
+    if (result.isConfirmed) {
       try {
         await axios.delete(`/api/v1/hallazgos/${id}`);
         swalSuccess('Hallazgo eliminado');

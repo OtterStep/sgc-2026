@@ -96,6 +96,7 @@ router.post('/capas', verificarToken, verificarRol(['admin', 'gestor_calidad', '
 router.put('/capas/:id', verificarToken, verificarRol(['admin', 'gestor_calidad']), capaCtrl.actualizarCapa);
 router.patch('/capas/:id/estado', verificarToken, capaCtrl.actualizarEstadoCapa);
 router.delete('/capas/:id', verificarToken, verificarRol(['admin', 'gestor_calidad']), capaCtrl.eliminarCapa);
+router.patch('/capas/:id/cerrar', verificarToken, verificarRol(['admin', 'gestor_calidad', 'auditor']), capaCtrl.cerrarCapa);
 
 // Riesgos
 router.get('/riesgos/reporte', verificarToken, riesgoCtrl.reporteRiesgos);

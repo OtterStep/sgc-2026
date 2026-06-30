@@ -2,11 +2,11 @@
 import Sidebar from '@/components/layout/Sidebar';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { ShieldAlert, CheckCircle, Clock, AlertTriangle, Plus, Download, Eye, Edit, Trash2 } from 'lucide-react';
+import { ShieldAlert, AlertTriangle, Plus, Download, Eye, Edit, Trash2, Lock } from 'lucide-react';
 import { swalError, swalSuccess, swalConfirm } from '@/lib/swal';
+import ModalCerrarCapa from '@/components/capas/CerrarCapa';
 
-const ESTADOS_CAPA = ['registrada', 'en_implementacion', 'implementada', 'verificada', 'cerrada'];
-const EFECTIVIDADES = ['efectiva', 'parcial', 'no_efectiva'];
+const ESTADOS_CAPA = ['registrada', 'en_implementacion', 'implementada', 'verificada'];
 
 export default function CapasPage() {
   const [capas, setCapas] = useState([]);
@@ -16,6 +16,11 @@ export default function CapasPage() {
   const [modalVer, setModalVer] = useState(false);
   const [modalEditar, setModalEditar] = useState(false);
   const [capaSeleccionada, setCapaSeleccionada] = useState(null);
+
+  // NUEVO: estado del modal de cierre con calificación de efectividad
+  const [modalCerrar, setModalCerrar] = useState(false);
+  const [capaACerrar, setCapaACerrar] = useState(null);
+
   const [nuevaCapa, setNuevaCapa] = useState({
     codigo: '',
     tipo: 'correctiva',
@@ -95,17 +100,10 @@ export default function CapasPage() {
     }
   };
 
-  const handleCalificarEfectividad = async (capa, efectividad) => {
-    const result = await swalConfirm(`¿Está seguro de calificar la efectividad como ${efectividad}?`);
-    if (result.isConfirmed) {
-      try {
-        await axios.patch(`/api/v1/capas/${capa.id}/estado`, { estado: 'cerrada', efectividad });
-        swalSuccess('CAPA cerrada correctamente');
-        cargarDatos();
-      } catch (err) {
-        swalError(err);
-      }
-    }
+  // NUEVO: abre el modal de cierre con calificación de efectividad
+  const abrirModalCerrar = (capa) => {
+    setCapaACerrar(capa);
+    setModalCerrar(true);
   };
 
   const abrirModalVer = (capa) => {
@@ -156,11 +154,6 @@ export default function CapasPage() {
     }
   };
 
-  const getNombreResponsable = (id) => {
-    const u = usuarios.find(u => u.id === id);
-    return u ? `${u.nombres} ${u.apellidos}` : 'Sin asignar';
-  };
-
   const getEstadoBadgeClass = (estado) => {
     switch (estado) {
       case 'cerrada':
@@ -187,11 +180,6 @@ export default function CapasPage() {
       default:
         return 'bg-slate-100 text-slate-700';
     }
-  };
-
-  const getSiguienteEstado = (estadoActual) => {
-    const idx = ESTADOS_CAPA.indexOf(estadoActual);
-    return idx < ESTADOS_CAPA.length - 1 ? ESTADOS_CAPA[idx + 1] : null;
   };
 
   return (
@@ -263,35 +251,34 @@ export default function CapasPage() {
                       )}
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 items-center">
                         <button onClick={() => abrirModalVer(capa)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg" title="Ver detalles">
                           <Eye size={16} />
                         </button>
+
                         {capa.estado !== 'cerrada' && (
                           <button onClick={() => abrirModalEditar(capa)} className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg" title="Editar">
                             <Edit size={16} />
                           </button>
                         )}
-                        {capa.estado === 'verificada' && (
-                          <div className="flex gap-1">
-                            {EFECTIVIDADES.map(ef => (
-                              <button
-                                key={ef}
-                                onClick={() => handleCalificarEfectividad(capa, ef)}
-                                className={`px-2 py-1 text-xs rounded ${
-                                  ef === 'efectiva' ? 'bg-green-600 text-white' :
-                                  ef === 'parcial' ? 'bg-amber-600 text-white' :
-                                  'bg-red-600 text-white'
-                                } hover:opacity-80`}
-                              >
-                                {ef}
-                              </button>
-                            ))}
-                          </div>
+
+                        {/* NUEVO: botón "Cerrar CAPA" — abre el modal de calificación de efectividad.
+                            Reemplaza los 3 botones sueltos de efectividad que existían antes. */}
+                        {['implementada', 'verificada'].includes(capa.estado) && (
+                          <button
+                            onClick={() => abrirModalCerrar(capa)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 text-white border border-amber-400 hover:bg-slate-700"
+                            title="Cerrar CAPA"
+                          >
+                            <Lock size={12} /> Cerrar CAPA
+                          </button>
                         )}
-                        <button onClick={() => handleEliminar(capa)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg" title="Eliminar">
-                          <Trash2 size={16} />
-                        </button>
+
+                        {capa.estado !== 'cerrada' && (
+                          <button onClick={() => handleEliminar(capa)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg" title="Eliminar">
+                            <Trash2 size={16} />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -498,6 +485,15 @@ export default function CapasPage() {
               </form>
             </div>
           </div>
+        )}
+
+        {/* NUEVO: Modal Cerrar CAPA con calificación de efectividad */}
+        {modalCerrar && capaACerrar && (
+          <ModalCerrarCapa
+            capa={capaACerrar}
+            onClose={() => { setModalCerrar(false); setCapaACerrar(null); }}
+            onCerrada={cargarDatos}
+          />
         )}
       </main>
     </div>
