@@ -1,5 +1,5 @@
 import { Proceso, Macroproceso, ActividadProceso, Usuario, VersionMapa, ParametroSistema } from '../models/index.js';
-import { generarPDF } from '../services/pdfService.js';
+import { generarPDF, generarPDFReporteMapaProcesos } from '../services/pdfService.js';
 import { formatError, prepareCreateData } from '../utils/errorHandler.js';
 import { sequelize } from '../config/database.js';
 
@@ -161,20 +161,47 @@ export const crearActividad = async (req, res) => {
 
 export const reporteMapaProcesos = async (req, res) => {
   try {
-    const procesos = await Proceso.findAll({
-      include: [{ model: Macroproceso, as: 'macroproceso' }],
+    const ordenCategorias = ['estrategico', 'misional', 'soporte'];
+
+    const macroprocesos = await Macroproceso.findAll({
+      where: { estado: true },
+      include: [{
+        model: Proceso, as: 'procesos',
+        include: [{
+          model: ActividadProceso, as: 'actividades',
+          order: [['secuencia', 'ASC']],
+        }],
+      }],
+      order: [['codigo', 'ASC']],
     });
-    const filas = procesos.map(p => ([
-      p.codigo || '-',
-      p.nombre || '-',
-      p.macroproceso?.nombre || '-',
-      p.objetivo || '-',
-      p.estado || '-',
-    ]));
-    const pdf = await generarPDF({
+
+    const categorias = ordenCategorias.map(clasificacion => {
+      const items = macroprocesos.filter(m => m.clasificacion_mapa === clasificacion);
+      return {
+        titulo: clasificacion === 'estrategico' ? 'Estratégicos'
+          : clasificacion === 'misional' ? 'Misionales'
+          : 'Soporte',
+        macroprocesos: items.map(m => ({
+          codigo: m.codigo,
+          nombre: m.nombre,
+          procesos: (m.procesos || []).map(p => ({
+            codigo: p.codigo,
+            nombre: p.nombre,
+            objetivo: p.objetivo || '',
+            actividades: (p.actividades || []).map(a => ({
+              codigo: a.codigo,
+              nombre: a.nombre,
+              entradas: a.entradas || '',
+              salidas: a.salidas || '',
+            })),
+          })),
+        })),
+      };
+    });
+
+    const pdf = await generarPDFReporteMapaProcesos({
       titulo: 'Mapa de Procesos Institucionales',
-      columnas: ['Código', 'Nombre', 'Macroproceso', 'Objetivo', 'Estado'],
-      filas,
+      categorias,
     });
     res.set({ 'Content-Type': 'application/pdf', 'Content-Disposition': 'attachment; filename=mapa-procesos.pdf' });
     res.send(pdf);

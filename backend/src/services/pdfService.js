@@ -226,6 +226,144 @@ export const generarPDF = async ({
   });
 };
 
+const COLOR_CATEGORIA = {
+  estrategicos: '#3B82F6',
+  misionales: '#059669',
+  soporte: '#D97706',
+};
+
+export const generarPDFReporteMapaProcesos = async ({
+  titulo,
+  institucion = 'Universidad Nacional de Trujillo',
+  categorias = [],
+}) => {
+  return new Promise((resolve, reject) => {
+    try {
+      const doc = new PDFDocument({ size: 'A4', layout: 'portrait', margin: MARGIN, bufferPages: true });
+      const buffers = [];
+      doc.on('data', buffers.push.bind(buffers));
+      doc.on('end', () => resolve(Buffer.concat(buffers)));
+
+      const anchoPagina = doc.page.width - MARGIN * 2;
+      let y = MARGIN;
+
+      dibujarEncabezado(doc, titulo, institucion);
+      y = doc.y + 8;
+
+      if (!categorias.length) {
+        doc.fillColor('#9CA3AF').fontSize(11).text('No hay categorías para mostrar.', MARGIN, y);
+        doc.end();
+        return;
+      }
+
+      categorias.forEach((cat, catIdx) => {
+        const key = cat.titulo.toLowerCase();
+        const colorCat = COLOR_CATEGORIA[key] || '#6B7280';
+
+        // Salto de página si es necesario (excepto primera categoría)
+        if (catIdx > 0 && y + 40 > doc.page.height - MARGIN - 30) {
+          doc.addPage();
+          y = MARGIN + 20;
+        }
+
+        // Título de categoría
+        doc.save();
+        doc.rect(MARGIN, y, anchoPagina, 26).fillAndStroke(colorCat, colorCat);
+        doc.fillColor('#FFFFFF').fontSize(14).font('Helvetica-Bold')
+          .text(cat.titulo, MARGIN + 10, y + 5, { width: anchoPagina - 20 });
+        doc.restore();
+        y += 32;
+
+        if (!cat.macroprocesos.length) {
+          doc.fillColor('#9CA3AF').fontSize(10).text('No hay macroprocesos en esta categoría.', MARGIN + 10, y);
+          y += 18;
+          return;
+        }
+
+        cat.macroprocesos.forEach((macro) => {
+          y = verificarSaltoPagina(doc, y, 30);
+
+          // Nombre del macroproceso
+          doc.fillColor('#003366').fontSize(12).font('Helvetica-Bold')
+            .text(`${macro.codigo} — ${macro.nombre}`, MARGIN + 10, y);
+          y = doc.y + 4;
+
+          if (!macro.procesos.length) {
+            doc.fillColor('#9CA3AF').fontSize(9).text('No hay procesos asociados.', MARGIN + 20, y);
+            y += 16;
+            return;
+          }
+
+          macro.procesos.forEach((proc) => {
+            y = verificarSaltoPagina(doc, y, 30);
+
+            // Nombre del proceso
+            doc.fillColor('#374151').fontSize(10).font('Helvetica')
+              .text(`• ${proc.codigo} — ${proc.nombre}`, MARGIN + 20, y);
+            y = doc.y + 2;
+
+            if (proc.objetivo) {
+              doc.fillColor('#6B7280').fontSize(8).text(`Objetivo: ${proc.objetivo}`, MARGIN + 30, y);
+              y = doc.y + 2;
+            }
+
+            if (!proc.actividades.length) {
+              doc.fillColor('#9CA3AF').fontSize(8).text('Sin actividades registradas.', MARGIN + 30, y);
+              y += 14;
+              return;
+            }
+
+            // Tabla de actividades
+            const colsAct = ['Código', 'Nombre', 'Entradas', 'Salidas'];
+            const anchosAct = anchoPagina > 500 ? [60, 130, 130, 130] : [45, 95, 95, 95];
+            const anchoTotalAct = anchosAct.reduce((a, b) => a + b, 0);
+            const xTablaAct = MARGIN + (anchoPagina - anchoTotalAct) / 2 + 10;
+            const altCabAct = 18;
+
+            y = verificarSaltoPagina(doc, y, altCabAct + 6);
+            doc.save();
+            doc.fillColor('#1E40AF').fontSize(8).font('Helvetica-Bold')
+              .text('Actividades del proceso', xTablaAct, y);
+            doc.restore();
+            y += 14;
+
+            y = verificarSaltoPagina(doc, y, altCabAct);
+            dibujarCabeceraTabla(doc, colsAct, xTablaAct, y, anchosAct, altCabAct);
+            y += altCabAct;
+
+            proc.actividades.forEach((act) => {
+              const fila = [act.codigo, act.nombre, act.entradas, act.salidas];
+              const altFila = Math.max(20, ...fila.map((v, i) =>
+                doc.heightOfString(normalizarValor(v), { width: anchosAct[i] - 8 })
+              )) + 8;
+
+              y = verificarSaltoPagina(doc, y, altFila);
+              dibujarFila(doc, fila, xTablaAct, y, anchosAct, altFila);
+              y += altFila;
+            });
+
+            y += 6;
+          });
+
+          y += 4;
+        });
+
+        y += 8;
+      });
+
+      doc.moveDown(1.5);
+      doc.fillColor(SUBTITLE_COLOR).fontSize(9).text(
+        `Documento generado el ${new Date().toLocaleString('es-PE')} | SGC-UNT v1.0`,
+        { align: 'center' }
+      );
+
+      doc.end();
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
 export const generarPDFReporteIndicadores = async ({
   titulo,
   subtitulo = '',
