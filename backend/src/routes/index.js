@@ -131,6 +131,7 @@ router.delete('/preguntas/:id', verificarToken, verificarRol(['admin', 'gestor_c
 router.post('/encuestas/responder', verificarToken, encCtrl.enviarRespuesta);
 router.get('/encuestas/:id/resultados', verificarToken, encCtrl.obtenerResultados);
 router.get('/encuestas/:id/participacion-escuelas', verificarToken, encCtrl.obtenerParticipacionEscuelas);
+router.get('/encuestas/:id/reporte', verificarToken, encCtrl.reporteEncuesta);
 
 // Dashboard
 router.get('/dashboard/estadisticas', verificarToken, dashCtrl.getEstadisticas);

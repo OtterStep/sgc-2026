@@ -1,6 +1,7 @@
 import { Op, fn, col } from 'sequelize';
 import { Encuesta, PreguntaEncuesta, RespuestaEncuesta, Usuario } from '../models/index.js';
 import { formatError } from '../utils/errorHandler.js';
+import { generarPDFReporteEncuestas } from '../services/pdfService.js';
 
 // ============================================================
 // LISTAR ENCUESTAS
@@ -477,6 +478,143 @@ export const obtenerParticipacionEscuelas = async (req, res) => {
       total_esperado: usuarios.length,
       por_escuela: porEscuela,
     });
+  } catch (err) {
+    res.status(500).json({ error: formatError(err) });
+  }
+};
+
+// ============================================================
+// REPORTE PDF DE ENCUESTA
+// Genera un PDF con resultados y participación por escuela
+// ============================================================
+export const reporteEncuesta = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const encuesta = await Encuesta.findByPk(id, {
+      include: [{ model: PreguntaEncuesta, as: 'preguntas', order: [['orden', 'ASC']] }],
+    });
+    if (!encuesta) return res.status(404).json({ error: 'Encuesta no encontrada' });
+
+    // — Resultados (misma lógica que obtenerResultados) —
+    const todasRespuestas = await RespuestaEncuesta.findAll({ where: { encuesta_id: id } });
+
+    const rolMap = { estudiantes: 'estudiante', docentes: 'docente', egresados: 'egresado', administrativos: 'administrativo' };
+    const rolWhere = rolMap[encuesta.dirigido_a];
+    const totalEsperado = rolWhere
+      ? await Usuario.count({ where: { rol: rolWhere, activo: true } })
+      : rolMap[encuesta.dirigido_a] === undefined && encuesta.dirigido_a !== 'todos'
+        ? 0
+        : await Usuario.count({ where: { activo: true } });
+
+    const totalPreguntas = encuesta.preguntas.length;
+    const identificados = new Set(todasRespuestas.filter((r) => r.usuario_id).map((r) => r.usuario_id));
+    const totalRespondentes = identificados.size > 0
+      ? identificados.size
+      : totalPreguntas > 0
+        ? Math.min(Math.round(todasRespuestas.length / totalPreguntas), totalEsperado)
+        : 0;
+
+    const resultados = encuesta.preguntas.map((pregunta) => {
+      const rPreg = todasRespuestas.filter((r) => r.pregunta_id === pregunta.id);
+      const total = rPreg.length;
+      const base = { pregunta_id: pregunta.id, texto: pregunta.texto, tipo: pregunta.tipo, total };
+
+      if (['likert_5', 'likert_7', 'numerica'].includes(pregunta.tipo)) {
+        const valores = rPreg.map((r) => parseFloat(r.valor_numerico)).filter((v) => !isNaN(v));
+        const promedio = valores.length ? (valores.reduce((a, b) => a + b, 0) / valores.length).toFixed(2) : null;
+        const distribucion = {};
+        valores.forEach((v) => { distribucion[v] = (distribucion[v] ?? 0) + 1; });
+        return { ...base, promedio, distribucion };
+      }
+
+      if (pregunta.tipo === 'si_no') {
+        const si = rPreg.filter((r) => parseFloat(r.valor_numerico) === 1).length;
+        const no = rPreg.filter((r) => parseFloat(r.valor_numerico) === 0).length;
+        return { ...base, si, no };
+      }
+
+      if (pregunta.tipo === 'abierta') {
+        const textos = rPreg.map((r) => r.valor_texto).filter(Boolean);
+        return { ...base, respuestas_texto: textos };
+      }
+
+      return base;
+    });
+
+    // — Participación por escuela (misma lógica que obtenerParticipacionEscuelas) —
+    let participacion = null;
+    if (rolWhere) {
+      const usuarios = await Usuario.findAll({
+        where: { rol: rolWhere, activo: true },
+        attributes: ['id', 'nombres', 'apellidos', 'correo', 'facultad', 'escuela'],
+        order: [['facultad', 'ASC'], ['escuela', 'ASC'], ['apellidos', 'ASC']],
+      });
+
+      if (encuesta.anonima) {
+        const pregCount = totalPreguntas;
+        const totalRowsAnon = todasRespuestas.length;
+        const anonResp = pregCount > 0 ? Math.round(totalRowsAnon / pregCount) : 0;
+        const totalEsp = usuarios.length;
+        const globalPct = totalEsp > 0 ? Math.min(anonResp / totalEsp, 1) : 0;
+
+        const gruposAnon = {};
+        for (const u of usuarios) {
+          const key = `${u.facultad || 'Sin facultad'}|||${u.escuela || 'Sin escuela'}`;
+          if (!gruposAnon[key]) {
+            gruposAnon[key] = { facultad: u.facultad || 'Sin facultad', escuela: u.escuela || 'Sin escuela', total: 0, respondieron: 0, no_respondieron: 0 };
+          }
+          gruposAnon[key].total++;
+        }
+
+        const porEscuelaAnon = Object.values(gruposAnon).map((g) => {
+          const est = Math.round(g.total * globalPct);
+          return { ...g, respondieron: est, no_respondieron: g.total - est, porcentaje: g.total > 0 ? Math.round(globalPct * 100) : 0 };
+        });
+
+        participacion = { anonima: true, total_respondentes: Math.min(anonResp, totalEsp), total_esperado: totalEsp, por_escuela: porEscuelaAnon };
+      } else {
+        const respIds = new Set(todasRespuestas.filter((r) => r.usuario_id).map((r) => r.usuario_id));
+        const grupos = {};
+        for (const u of usuarios) {
+          const key = `${u.facultad || 'Sin facultad'}|||${u.escuela || 'Sin escuela'}`;
+          if (!grupos[key]) {
+            grupos[key] = { facultad: u.facultad || 'Sin facultad', escuela: u.escuela || 'Sin escuela', total: 0, respondieron: 0, no_respondieron: 0, porcentaje: 0 };
+          }
+          grupos[key].total++;
+          if (respIds.has(u.id)) {
+            grupos[key].respondieron++;
+          } else {
+            grupos[key].no_respondieron++;
+          }
+        }
+        const porEscuela = Object.values(grupos).map((g) => ({ ...g, porcentaje: g.total > 0 ? Math.round((g.respondieron / g.total) * 100) : 0 }));
+        participacion = { anonima: false, total_respondentes: [...respIds].length, total_esperado: usuarios.length, por_escuela: porEscuela };
+      }
+    }
+
+    // — Generar PDF —
+    const pdf = await generarPDFReporteEncuestas({
+      encuesta: {
+        codigo: encuesta.codigo,
+        titulo: encuesta.titulo,
+        dirigido_a: encuesta.dirigido_a,
+        estado: encuesta.estado,
+        anonima: encuesta.anonima,
+        fecha_inicio: encuesta.fecha_inicio,
+        fecha_fin: encuesta.fecha_fin,
+        total_respondentes: totalRespondentes,
+        total_esperado: totalEsperado,
+      },
+      resultados,
+      participacion,
+    });
+
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename=reporte-${encuesta.codigo}.pdf`,
+    });
+    res.send(pdf);
   } catch (err) {
     res.status(500).json({ error: formatError(err) });
   }

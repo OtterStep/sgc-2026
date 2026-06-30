@@ -539,6 +539,7 @@ function TabParticipacion({ encuestaId, anonima }) {
 function VistaResultados({ encuestaId, onVolver }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [descargando, setDescargando] = useState(false);
   const [vistaPreg, setVistaPreg] = useState({});
   const [tabActivo, setTabActivo] = useState('respuestas');
 
@@ -548,6 +549,25 @@ function VistaResultados({ encuestaId, onVolver }) {
       .catch(swalError)
       .finally(() => setLoading(false));
   }, [encuestaId]);
+
+  const descargarReporte = async () => {
+    setDescargando(true);
+    try {
+      const res = await axios.get(`/api/v1/encuestas/${encuestaId}/reporte`, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `reporte-${data?.encuesta?.codigo || 'encuesta'}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      swalError(err);
+    } finally {
+      setDescargando(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -566,11 +586,18 @@ function VistaResultados({ encuestaId, onVolver }) {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <button onClick={onVolver}
-        className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-800 mb-6 group">
-        <ChevronDown size={15} className="rotate-90 group-hover:-translate-x-0.5 transition-transform" />
-        Volver a encuestas
-      </button>
+      <div className="flex items-center justify-between mb-6">
+        <button onClick={onVolver}
+          className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-800 group">
+          <ChevronDown size={15} className="rotate-90 group-hover:-translate-x-0.5 transition-transform" />
+          Volver a encuestas
+        </button>
+        <button onClick={descargarReporte} disabled={descargando}
+          className="flex items-center gap-1.5 text-sm bg-blue-600 text-white hover:bg-blue-700 disabled:bg-blue-300 px-3 py-1.5 rounded-lg transition-colors">
+          <FileText size={15} />
+          {descargando ? 'Generando…' : 'Descargar PDF'}
+        </button>
+      </div>
 
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
         <div className="flex items-start justify-between">
