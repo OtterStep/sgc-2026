@@ -24,7 +24,7 @@ router.post('/auth/cambiar-password', verificarToken, authCtrl.cambiarPassword);
 router.post('/auth/restablecer-password', verificarToken, verificarRol(['admin']), authCtrl.restablecerPasswordAdmin);
 
 // Usuarios (Gestión de Roles y Permisos)
-router.get('/usuarios', verificarToken, verificarRol(['admin']), usrCtrl.listarUsuarios);
+router.get('/usuarios', verificarToken, verificarRol(['admin', 'gestor_calidad']), usrCtrl.listarUsuarios);
 router.post('/usuarios', verificarToken, verificarRol(['admin']), usrCtrl.crearUsuario);
 router.put('/usuarios/:id', verificarToken, verificarRol(['admin']), usrCtrl.actualizarUsuario);
 router.patch('/usuarios/:id/desactivar', verificarToken, verificarRol(['admin']), usrCtrl.desactivarUsuario);
@@ -71,10 +71,14 @@ router.put('/estandares/:id', verificarToken, verificarRol(['admin', 'gestor_cal
 router.delete('/estandares/:id', verificarToken, verificarRol(['admin', 'gestor_calidad']), acrCtrl.eliminarEstandar);
 router.get('/estandares/:estandar_id/factores', verificarToken, acrCtrl.listarFactores);
 router.post('/factores', verificarToken, verificarRol(['admin', 'gestor_calidad']), acrCtrl.crearFactor);
+router.put('/factores/:id', verificarToken, verificarRol(['admin', 'gestor_calidad']), acrCtrl.actualizarFactor);
+router.delete('/factores/:id', verificarToken, verificarRol(['admin', 'gestor_calidad']), acrCtrl.eliminarFactor);
 router.get('/autoevaluaciones', verificarToken, acrCtrl.listarAutoevaluaciones);
 router.post('/autoevaluaciones', verificarToken, verificarRol(['admin', 'gestor_calidad']), acrCtrl.crearAutoevaluacion);
 router.delete('/autoevaluaciones/:id', verificarToken, verificarRol(['admin', 'gestor_calidad']), acrCtrl.eliminarAutoevaluacion);
+router.get('/evaluaciones-criterio', verificarToken, acrCtrl.listarEvaluacionesCriterio);
 router.post('/evaluaciones-criterio', verificarToken, acrCtrl.evaluarCriterio);
+router.put('/evaluaciones-criterio/:id', verificarToken, verificarRol(['admin', 'gestor_calidad']), acrCtrl.actualizarEvaluacionCriterio);
 
 // Auditorías
 router.get('/auditorias/reporte', verificarToken, audCtrl.reporteAuditoria);
@@ -106,6 +110,8 @@ router.put('/riesgos/:id', verificarToken, verificarRol(['admin', 'gestor_calida
 router.delete('/riesgos/:id', verificarToken, verificarRol(['admin', 'gestor_calidad']), riesgoCtrl.eliminarRiesgo);
 router.get('/riesgos/:riesgo_id/planes-mitigacion', verificarToken, riesgoCtrl.listarPlanesMitigacion);
 router.post('/planes-mitigacion', verificarToken, riesgoCtrl.crearPlanMitigacion);
+router.put('/planes-mitigacion/:id', verificarToken, verificarRol(['admin', 'gestor_calidad']), riesgoCtrl.actualizarPlanMitigacion);
+router.delete('/planes-mitigacion/:id', verificarToken, verificarRol(['admin', 'gestor_calidad']), riesgoCtrl.eliminarPlanMitigacion);
 
 // Indicadores
 router.get('/indicadores/reporte', verificarToken, indCtrl.reporteIndicadores);
@@ -120,7 +126,10 @@ router.delete('/mediciones/:id', verificarToken, verificarRol(['admin', 'gestor_
 
 // Periodos Académicos
 router.get('/periodos-academicos', verificarToken, perCtrl.listarPeriodos);
+router.get('/periodos-academicos/:id', verificarToken, perCtrl.obtenerPeriodoPorId);
 router.post('/periodos-academicos', verificarToken, verificarRol(['admin', 'gestor_calidad']), perCtrl.crearPeriodo);
+router.put('/periodos-academicos/:id', verificarToken, verificarRol(['admin', 'gestor_calidad']), perCtrl.actualizarPeriodo);
+router.patch('/periodos-academicos/:id/desactivar', verificarToken, verificarRol(['admin', 'gestor_calidad']), perCtrl.desactivarPeriodo);
 
 // Encuestas
 router.get('/encuestas', verificarToken, encCtrl.listarEncuestas);

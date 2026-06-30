@@ -74,6 +74,12 @@ export const listarMediciones = async (req, res) => {
 export const registrarMedicion = async (req, res) => {
   try {
     const data = prepareCreateData(req.body, ['indicador_id']);
+    if (data.periodo) {
+      const periodoExiste = await PeriodoAcademico.findOne({ where: { codigo: data.periodo } });
+      if (!periodoExiste) {
+        return res.status(400).json({ error: `El período '${data.periodo}' no existe en la lista de periodos académicos` });
+      }
+    }
     const cumplimiento = data.valor_esperado ? ((data.valor_real / data.valor_esperado) * 100).toFixed(2) : null;
     if (!data.fecha_medicion) {
       data.fecha_medicion = new Date().toISOString().split('T')[0];
@@ -95,6 +101,12 @@ export const actualizarMedicion = async (req, res) => {
     const data = prepareCreateData(req.body, ['indicador_id']);
     const med = await MedicionIndicador.findByPk(id);
     if (!med) return res.status(404).json({ error: 'Medición no encontrada' });
+    if (data.periodo) {
+      const periodoExiste = await PeriodoAcademico.findOne({ where: { codigo: data.periodo } });
+      if (!periodoExiste) {
+        return res.status(400).json({ error: `El período '${data.periodo}' no existe en la lista de periodos académicos` });
+      }
+    }
     const cumplimiento = data.valor_esperado ? ((data.valor_real / data.valor_esperado) * 100).toFixed(2) : null;
     await MedicionIndicador.update({ ...data, cumplimiento }, { where: { id } });
     res.json({ mensaje: 'Medición actualizada correctamente' });

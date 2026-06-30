@@ -307,6 +307,18 @@ export const Riesgo = sequelize.define('riesgos', {
   categoria: DataTypes.STRING(50),
   probabilidad: { type: DataTypes.INTEGER, validate: { min: 1, max: 5 } },
   impacto: { type: DataTypes.INTEGER, validate: { min: 1, max: 5 } },
+  nivel_riesgo: {
+    type: DataTypes.VIRTUAL(DataTypes.STRING(20)),
+    get() {
+      const prob = this.getDataValue('probabilidad') || 0;
+      const imp = this.getDataValue('impacto') || 0;
+      const prod = prob * imp;
+      if (prod <= 4) return 'bajo';
+      if (prod <= 9) return 'medio';
+      if (prod <= 14) return 'alto';
+      return 'critico';
+    }
+  },
   estado: { type: DataTypes.STRING(20), defaultValue: 'activo' },
   creado_por: DataTypes.UUID,
   modificado_por: DataTypes.UUID,

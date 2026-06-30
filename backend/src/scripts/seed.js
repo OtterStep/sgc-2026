@@ -103,26 +103,27 @@ const seed = async () => {
     // 4. ACTIVIDADES POR PROCESO
     // ==========================================
     const activData = [
-      { proceso_id: procMap['P-001'].id, codigo: 'ACT-001', nombre: 'Elaboración del PEI', descripcion: 'Redactar el plan estratégico', secuencia: 1, responsable_id: admin.id },
-      { proceso_id: procMap['P-001'].id, codigo: 'ACT-002', nombre: 'Seguimiento de indicadores', descripcion: 'Monitorear cumplimiento', secuencia: 2, responsable_id: gestor.id },
-      { proceso_id: procMap['P-002'].id, codigo: 'ACT-003', nombre: 'Revisión del SGC', descripcion: 'Auditar el sistema', secuencia: 1, responsable_id: auditor.id },
-      { proceso_id: procMap['P-002'].id, codigo: 'ACT-004', nombre: 'Actualización de documentos', descripcion: 'Revisar y aprobar documentos', secuencia: 2, responsable_id: gestor.id },
-      { proceso_id: procMap['P-003'].id, codigo: 'ACT-005', nombre: 'Diseño curricular', descripcion: 'Elaborar mallas curriculares', secuencia: 1, responsable_id: docente.id },
-      { proceso_id: procMap['P-003'].id, codigo: 'ACT-006', nombre: 'Evaluación curricular', descripcion: 'Evaluar planes de estudio', secuencia: 2, responsable_id: docente.id },
-      { proceso_id: procMap['P-004'].id, codigo: 'ACT-007', nombre: 'Proceso de admisión', descripcion: 'Organizar examen de admisión', secuencia: 1, responsable_id: gestor.id },
-      { proceso_id: procMap['P-004'].id, codigo: 'ACT-008', nombre: 'Matrícula académica', descripcion: 'Registrar estudiantes', secuencia: 2, responsable_id: gestor.id },
-      { proceso_id: procMap['P-005'].id, codigo: 'ACT-009', nombre: 'Programación académica', descripcion: 'Asignar horarios y aulas', secuencia: 1, responsable_id: docente.id },
-      { proceso_id: procMap['P-005'].id, codigo: 'ACT-010', nombre: 'Evaluación del aprendizaje', descripcion: 'Registrar notas', secuencia: 2, responsable_id: docente.id },
-      { proceso_id: procMap['P-006'].id, codigo: 'ACT-011', nombre: 'Convocatoria de proyectos', descripcion: 'Publicar y recepcionar proyectos', secuencia: 1, responsable_id: docente.id },
-      { proceso_id: procMap['P-006'].id, codigo: 'ACT-012', nombre: 'Seguimiento de proyectos', descripcion: 'Monitorear avances', secuencia: 2, responsable_id: docente.id },
-      { proceso_id: procMap['P-007'].id, codigo: 'ACT-013', nombre: 'Contratación de personal', descripcion: 'Procesos de selección', secuencia: 1, responsable_id: gestor.id },
-      { proceso_id: procMap['P-008'].id, codigo: 'ACT-014', nombre: 'Elaboración de presupuesto', descripcion: 'Formular presupuesto anual', secuencia: 1, responsable_id: admin.id },
-      { proceso_id: procMap['P-009'].id, codigo: 'ACT-015', nombre: 'Control de documentos', descripcion: 'Codificar y archivar documentos', secuencia: 1, responsable_id: gestor.id },
-      { proceso_id: procMap['P-010'].id, codigo: 'ACT-016', nombre: 'Programación de auditorías', descripcion: 'Planificar auditorías anuales', secuencia: 1, responsable_id: auditor.id },
-      { proceso_id: procMap['P-010'].id, codigo: 'ACT-017', nombre: 'Ejecución de auditorías', descripcion: 'Realizar hallazgos y reportes', secuencia: 2, responsable_id: auditor.id },
+      { proceso_id: procMap['P-001'].id, codigo: 'ACT-001', nombre: 'Elaboración del PEI', descripcion: 'Redactar el plan estratégico institucional', secuencia: 1, responsable_id: admin.id, entradas: 'Diagnóstico institucional, normativa vigente, informes de gestión previos', salidas: 'Plan Estratégico Institucional (PEI) aprobado por Consejo Universitario' },
+      { proceso_id: procMap['P-001'].id, codigo: 'ACT-002', nombre: 'Seguimiento de indicadores', descripcion: 'Monitorear cumplimiento de metas del PEI', secuencia: 2, responsable_id: gestor.id, entradas: 'PEI vigente, reportes de unidades académicas, data histórica', salidas: 'Reporte trimestral de avance, tabla de indicadores actualizada' },
+      { proceso_id: procMap['P-002'].id, codigo: 'ACT-003', nombre: 'Revisión del SGC', descripcion: 'Auditar el sistema de gestión de calidad', secuencia: 1, responsable_id: auditor.id, entradas: 'Documentos del SGC, registros de procesos, lista de verificación', salidas: 'Informe de revisión, hallazgos identificados, plan de mejora' },
+      { proceso_id: procMap['P-002'].id, codigo: 'ACT-004', nombre: 'Actualización de documentos', descripcion: 'Revisar y aprobar documentos del SGC', secuencia: 2, responsable_id: gestor.id, entradas: 'Documentos obsoletos, solicitudes de cambio, normativa actualizada', salidas: 'Documentos actualizados y aprobados, registro de versiones' },
+      { proceso_id: procMap['P-003'].id, codigo: 'ACT-005', nombre: 'Diseño curricular', descripcion: 'Elaborar y actualizar mallas curriculares', secuencia: 1, responsable_id: docente.id, entradas: 'Perfil de egreso, demanda laboral, lineamientos curriculares nacionales', salidas: 'Plan de estudios aprobado, malla curricular, syllabus por asignatura' },
+      { proceso_id: procMap['P-003'].id, codigo: 'ACT-006', nombre: 'Evaluación curricular', descripcion: 'Evaluar planes de estudio vigentes', secuencia: 2, responsable_id: docente.id, entradas: 'Plan de estudios vigente, resultados académicos, encuestas de satisfacción', salidas: 'Informe de evaluación curricular, recomendaciones de mejora' },
+      { proceso_id: procMap['P-004'].id, codigo: 'ACT-007', nombre: 'Proceso de admisión', descripcion: 'Organizar y ejecutar el examen de admisión', secuencia: 1, responsable_id: gestor.id, entradas: 'Reglamento de admisión, vacantes por escuela, cronograma institucional', salidas: 'Lista de ingresantes, actas del proceso, estadísticas de postulantes' },
+      { proceso_id: procMap['P-004'].id, codigo: 'ACT-008', nombre: 'Matrícula académica', descripcion: 'Registrar a los estudiantes en el semestre', secuencia: 2, responsable_id: gestor.id, entradas: 'Lista de ingresantes, consolidado de alumnos, malla curricular vigente', salidas: 'Nómina de matriculados, horarios asignados, reporte por escuela' },
+      { proceso_id: procMap['P-005'].id, codigo: 'ACT-009', nombre: 'Programación académica', descripcion: 'Asignar horarios, aulas y docentes', secuencia: 1, responsable_id: docente.id, entradas: 'Plan de estudios, disponibilidad docente, infraestructura disponible', salidas: 'Horarios publicados, asignación de aulas, carga académica docente' },
+      { proceso_id: procMap['P-005'].id, codigo: 'ACT-010', nombre: 'Evaluación del aprendizaje', descripcion: 'Registrar y publicar notas de estudiantes', secuencia: 2, responsable_id: docente.id, entradas: 'Actas de evaluación, trabajos y exámenes, asistencia de estudiantes', salidas: 'Registro de notas oficial, actas finales, reporte de rendimiento' },
+      { proceso_id: procMap['P-006'].id, codigo: 'ACT-011', nombre: 'Convocatoria de proyectos', descripcion: 'Publicar y recepcionar proyectos de investigación', secuencia: 1, responsable_id: docente.id, entradas: 'Plan de investigación, fondos disponibles, bases del concurso', salidas: 'Proyectos recepcionados, lista de evaluadores, cronograma de evaluación' },
+      { proceso_id: procMap['P-006'].id, codigo: 'ACT-012', nombre: 'Seguimiento de proyectos', descripcion: 'Monitorear avances de proyectos activos', secuencia: 2, responsable_id: docente.id, entradas: 'Informes de avance de investigadores, cronograma aprobado, presupuesto asignado', salidas: 'Reporte semestral de avances, alertas de desviación, informes finales' },
+      { proceso_id: procMap['P-007'].id, codigo: 'ACT-013', nombre: 'Contratación de personal', descripcion: 'Gestionar procesos de selección y contratación', secuencia: 1, responsable_id: gestor.id, entradas: 'Requerimiento de plazas, perfil del puesto, presupuesto disponible', salidas: 'Contratos firmados, expedientes del personal, reporte de selección' },
+      { proceso_id: procMap['P-008'].id, codigo: 'ACT-014', nombre: 'Elaboración de presupuesto', descripcion: 'Formular el presupuesto anual institucional', secuencia: 1, responsable_id: admin.id, entradas: 'Ejecución presupuestal anterior, proyecciones financieras, requerimientos de áreas', salidas: 'Presupuesto anual aprobado, asignaciones por unidad, calendario de ejecución' },
+      { proceso_id: procMap['P-009'].id, codigo: 'ACT-015', nombre: 'Control de documentos', descripcion: 'Codificar, archivar y controlar versiones', secuencia: 1, responsable_id: gestor.id, entradas: 'Documentos generados por procesos, solicitudes de registro, normas de codificación', salidas: 'Documentos registrados y archivados, lista maestra actualizada, repositorio organizado' },
+      { proceso_id: procMap['P-010'].id, codigo: 'ACT-016', nombre: 'Programación de auditorías', descripcion: 'Planificar las auditorías internas del año', secuencia: 1, responsable_id: auditor.id, entradas: 'Plan anual de auditorías, resultados de auditorías previas, procesos priorizados', salidas: 'Cronograma de auditorías, asignación de auditores, lista de verificación' },
+      { proceso_id: procMap['P-010'].id, codigo: 'ACT-017', nombre: 'Ejecución de auditorías', descripcion: 'Realizar auditorías y emitir hallazgos', secuencia: 2, responsable_id: auditor.id, entradas: 'Cronograma aprobado, checklist por proceso, documentación de referencia', salidas: 'Informe de auditoría, hallazgos documentados, plan de acciones correctivas' },
     ];
     for (const d of activData) {
-      await ActividadProceso.findOrCreate({ where: { codigo: d.codigo }, defaults: d });
+      const [act, created] = await ActividadProceso.findOrCreate({ where: { codigo: d.codigo }, defaults: d });
+      if (!created) await act.update(d);
     }
     console.log('✅ Actividades creadas');
 
@@ -244,7 +245,7 @@ const seed = async () => {
     ];
     const hallazgoMap = {};
     for (const d of hallazgoData) {
-      const [h] = await Hallazgo.findOrCreate({ where: { descripcion: d.descripcion }, defaults: d });
+      const [h] = await Hallazgo.findOrCreate({ where: { plan_id: d.plan_id, descripcion: d.descripcion }, defaults: d });
       hallazgoMap[d.descripcion] = h;
     }
     console.log('✅ Hallazgos creados');
@@ -397,6 +398,8 @@ const seed = async () => {
       { docCodigo: 'MAN-001', numero_version: 2, cambios_descripcion: 'Actualización de procesos según nuevo PEI', contenido: '# Manual v2', estado: 'aprobado', creado_por: gestor.id },
       { docCodigo: 'PRO-001', numero_version: 1, cambios_descripcion: 'Versión inicial del procedimiento', contenido: '# Procedimiento v1', estado: 'aprobado', creado_por: auditor.id },
       { docCodigo: 'POL-002', numero_version: 1, cambios_descripcion: 'Versión inicial', contenido: '# Política Investigación v1', estado: 'en_revision', creado_por: docente.id },
+      { docCodigo: 'INS-001', numero_version: 1, cambios_descripcion: 'Versión inicial del instructivo', contenido: '# Instructivo\n\nPaso a paso para elaborar sílabos...', estado: 'borrador', creado_por: docente.id },
+      { docCodigo: 'FOR-001', numero_version: 1, cambios_descripcion: 'Versión inicial del formato', contenido: 'Formato estándar de acta', estado: 'aprobado', creado_por: gestor.id },
     ];
     const versionMap = {};
     for (const d of versionData) {
@@ -556,7 +559,7 @@ const seed = async () => {
     ];
     const testUsuarios = {};
     for (const d of testUsuariosData) {
-      const [u] = await Usuario.findOrCreate({ where: { codigo: d.codigo }, defaults: { ...d, contrasena_hash: '$2a$10$WIJEFhvFbf5JcxVSHvevROXEIkk7EM6rFPfUIPQvyCoXfC.FxPjRm' } });
+      const [u] = await Usuario.findOrCreate({ where: { codigo: d.codigo }, defaults: { ...d, contrasena_hash: '$2a$10$WIJEFhvFbf5JcxVSHvevROXEIkk7EM6rFPfUIPQvyCoXfC.FxPjRm', creado_por: admin.id, modificado_por: admin.id } });
       testUsuarios[d.codigo] = u;
     }
     console.log('✅ Usuarios de prueba creados');

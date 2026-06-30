@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import {
   FileText, GitBranch, Award, Search, ShieldAlert,
-  Activity, BarChart3, ClipboardList, LogOut, Home, Users, User
+  Activity, BarChart3, ClipboardList, LogOut, Home, Users, User, Calendar
 } from 'lucide-react';
 
 const menuItems = [
@@ -19,6 +19,7 @@ const menuItems = [
   { href: '/indicadores', label: 'Indicadores', icon: BarChart3, roles: ['admin', 'gestor_calidad', 'auditor', 'docente'] },
   { href: '/encuestas', label: 'Encuestas', icon: ClipboardList, roles: ['admin', 'gestor_calidad', 'estudiante', 'egresado', 'docente', 'auditor', 'invitado'] },
   { href: '/usuarios', label: 'Usuarios', icon: Users, roles: ['admin'] },
+  { href: '/periodos', label: 'Periodos', icon: Calendar, roles: ['admin', 'gestor_calidad'] },
 ];
 
 export default function Sidebar() {

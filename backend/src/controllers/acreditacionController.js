@@ -1,6 +1,8 @@
-import { EstandarAcreditacion, FactorCriterio, Autoevaluacion, EvaluacionCriterio } from '../models/index.js';
+import { Op } from 'sequelize';
+import { EstandarAcreditacion, FactorCriterio, Autoevaluacion, EvaluacionCriterio, PeriodoAcademico } from '../models/index.js';
 import { generarPDF } from '../services/pdfService.js';
 import { formatError, prepareCreateData } from '../utils/errorHandler.js';
+import { sequelize } from '../config/database.js';
 
 export const listarEstandares = async (req, res) => {
   try {
@@ -64,6 +66,31 @@ export const crearFactor = async (req, res) => {
   }
 };
 
+export const actualizarFactor = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const factor = await FactorCriterio.findByPk(id);
+    if (!factor) return res.status(404).json({ error: 'Factor no encontrado' });
+    const data = prepareCreateData(req.body, ['estandar_id']);
+    await factor.update({ ...data, modificado_por: req.usuario.id });
+    res.json(factor);
+  } catch (err) {
+    res.status(500).json({ error: formatError(err) });
+  }
+};
+
+export const eliminarFactor = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const factor = await FactorCriterio.findByPk(id);
+    if (!factor) return res.status(404).json({ error: 'Factor no encontrado' });
+    await factor.destroy();
+    res.json({ message: 'Factor eliminado' });
+  } catch (err) {
+    res.status(500).json({ error: formatError(err) });
+  }
+};
+
 export const listarAutoevaluaciones = async (req, res) => {
   try {
     const data = await Autoevaluacion.findAll({
@@ -78,6 +105,12 @@ export const listarAutoevaluaciones = async (req, res) => {
 export const crearAutoevaluacion = async (req, res) => {
   try {
     const data = prepareCreateData(req.body, ['estandar_id']);
+    if (data.periodo) {
+      const periodoExiste = await PeriodoAcademico.findOne({ where: { codigo: data.periodo } });
+      if (!periodoExiste) {
+        return res.status(400).json({ error: `El período '${data.periodo}' no existe en la lista de periodos académicos` });
+      }
+    }
     const a = await Autoevaluacion.create({ ...data, creado_por: req.usuario.id });
     res.status(201).json(a);
   } catch (err) {
@@ -95,12 +128,73 @@ export const eliminarAutoevaluacion = async (req, res) => {
   }
 };
 
+const recalcularPuntajeAutoevaluacion = async (autoevaluacionId) => {
+  const evaluaciones = await EvaluacionCriterio.findAll({
+    where: { autoevaluacion_id: autoevaluacionId },
+    include: [{ model: FactorCriterio, as: 'factor', attributes: ['peso'] }],
+  });
+  if (evaluaciones.length === 0) return;
+
+  let sumaPonderada = 0;
+  let sumaPesos = 0;
+  for (const ev of evaluaciones) {
+    const peso = parseFloat(ev.factor?.peso) || 0;
+    const puntaje = parseFloat(ev.puntaje) || 0;
+    sumaPonderada += puntaje * peso;
+    sumaPesos += peso;
+  }
+
+  const puntajeTotal = sumaPesos > 0
+    ? parseFloat((sumaPonderada / sumaPesos).toFixed(2))
+    : null;
+
+  await Autoevaluacion.update({ puntaje_total: puntajeTotal }, { where: { id: autoevaluacionId } });
+};
+
+export const listarEvaluacionesCriterio = async (req, res) => {
+  try {
+    const { autoevaluacion_id } = req.query;
+    if (!autoevaluacion_id) return res.status(400).json({ error: 'autoevaluacion_id es requerido' });
+    const data = await EvaluacionCriterio.findAll({
+      where: { autoevaluacion_id },
+      include: [{ model: FactorCriterio, as: 'factor', attributes: ['id', 'codigo', 'nombre', 'peso'] }],
+    });
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: formatError(err) });
+  }
+};
+
 export const evaluarCriterio = async (req, res) => {
+  const t = await sequelize.transaction();
   try {
     const data = prepareCreateData(req.body, ['autoevaluacion_id', 'factor_id']);
-    const e = await EvaluacionCriterio.create({ ...data, creado_por: req.usuario.id });
+    const e = await EvaluacionCriterio.create({ ...data, creado_por: req.usuario.id }, { transaction: t });
+    await t.commit();
+    await recalcularPuntajeAutoevaluacion(data.autoevaluacion_id);
     res.status(201).json(e);
   } catch (err) {
+    await t.rollback();
+    res.status(500).json({ error: formatError(err) });
+  }
+};
+
+export const actualizarEvaluacionCriterio = async (req, res) => {
+  const t = await sequelize.transaction();
+  try {
+    const { id } = req.params;
+    const ev = await EvaluacionCriterio.findByPk(id, { transaction: t });
+    if (!ev) {
+      await t.rollback();
+      return res.status(404).json({ error: 'Evaluación de criterio no encontrada' });
+    }
+    const data = prepareCreateData(req.body, ['autoevaluacion_id', 'factor_id']);
+    await ev.update({ ...data, modificado_por: req.usuario.id }, { transaction: t });
+    await t.commit();
+    await recalcularPuntajeAutoevaluacion(data.autoevaluacion_id || ev.autoevaluacion_id);
+    res.json(ev);
+  } catch (err) {
+    await t.rollback();
     res.status(500).json({ error: formatError(err) });
   }
 };
