@@ -1,5 +1,6 @@
 import { Op, fn, col } from 'sequelize';
 import { Encuesta, PreguntaEncuesta, RespuestaEncuesta, Usuario } from '../models/index.js';
+import { sequelize } from '../config/database.js';
 import { formatError } from '../utils/errorHandler.js';
 import { generarPDFReporteEncuestas } from '../services/pdfService.js';
 
@@ -66,6 +67,7 @@ export const listarEncuestas = async (req, res) => {
 // CREAR ENCUESTA (admin / gestor_calidad)
 // ============================================================
 export const crearEncuesta = async (req, res) => {
+  const t = await sequelize.transaction();
   try {
     const {
       codigo, titulo, descripcion, dirigido_a,
@@ -78,7 +80,7 @@ export const crearEncuesta = async (req, res) => {
       anonima: anonima ?? true,
       estado: 'borrador',
       creado_por: req.usuario.id,
-    });
+    }, { transaction: t });
 
     if (Array.isArray(preguntas) && preguntas.length > 0) {
       await PreguntaEncuesta.bulkCreate(
@@ -88,9 +90,12 @@ export const crearEncuesta = async (req, res) => {
           tipo: p.tipo,
           orden: p.orden ?? i + 1,
           obligatoria: p.obligatoria !== undefined ? p.obligatoria : true,
-        }))
+        })),
+        { transaction: t }
       );
     }
+
+    await t.commit();
 
     const encuestaCompleta = await Encuesta.findByPk(encuesta.id, {
       include: [{ model: PreguntaEncuesta, as: 'preguntas', order: [['orden', 'ASC']] }],
@@ -98,6 +103,7 @@ export const crearEncuesta = async (req, res) => {
 
     res.status(201).json(encuestaCompleta);
   } catch (err) {
+    await t.rollback();
     res.status(500).json({ error: formatError(err) });
   }
 };

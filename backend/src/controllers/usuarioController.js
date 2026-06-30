@@ -39,6 +39,8 @@ export const crearUsuario = async (req, res) => {
 export const actualizarUsuario = async (req, res) => {
   try {
     const { id } = req.params;
+    const usuario = await Usuario.findByPk(id);
+    if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado' });
     const { codigo, nombres, apellidos, rol, facultad, escuela, activo } = req.body;
     
     await Usuario.update({
@@ -55,6 +57,8 @@ export const actualizarUsuario = async (req, res) => {
 export const desactivarUsuario = async (req, res) => {
   try {
     const { id } = req.params;
+    const usuario = await Usuario.findByPk(id);
+    if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado' });
     await Usuario.update({ activo: false, modificado_por: req.usuario.id }, { where: { id } });
     res.json({ mensaje: 'Usuario desactivado correctamente' });
   } catch (err) {

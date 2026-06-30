@@ -272,7 +272,7 @@ export const Capa = sequelize.define('capas', {
   descripcion: { type: DataTypes.TEXT, allowNull: false },
   causa_raiz: DataTypes.TEXT,
   accion_propuesta: { type: DataTypes.TEXT, allowNull: false },
-  responsable_id: { type: DataTypes.UUID, allowNull: false },
+  responsable_id: DataTypes.UUID,
   fecha_implementacion: DataTypes.DATEONLY,
   fecha_verificacion: DataTypes.DATEONLY,
   evidencia_url: DataTypes.STRING(500),

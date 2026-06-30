@@ -36,16 +36,13 @@ export default function CapasPage() {
       const [capasRes, hallazgosRes, usuariosRes] = await Promise.all([
         axios.get('/api/v1/capas'),
         axios.get('/api/v1/hallazgos'),
-        axios.get('/api/v1/auth/usuarios'),
+        axios.get('/api/v1/usuarios'),
       ]);
       setCapas(capasRes.data);
       setHallazgos(hallazgosRes.data);
       setUsuarios(usuariosRes.data);
     } catch (err) {
-      setCapas([
-        { id: '1', codigo: 'CAPA-2024-001', tipo: 'correctiva', descripcion: 'Retraso en entrega de sílabos', estado: 'en_implementacion', responsable: { nombres: 'Juan', apellidos: 'Pérez' } },
-        { id: '2', codigo: 'CAPA-2024-002', tipo: 'preventiva', descripcion: 'Capacitación en normativa ISO', estado: 'implementada', efectividad: 'efectiva', responsable: { nombres: 'María', apellidos: 'López' } },
-      ]);
+      swalError(err);
     }
   };
 
@@ -334,7 +331,7 @@ export default function CapasPage() {
                   <select className="w-full px-3 py-2 border border-slate-300 rounded-lg" value={nuevaCapa.hallazgo_id} onChange={(e) => setNuevaCapa({ ...nuevaCapa, hallazgo_id: e.target.value })}>
                     <option value="">Sin hallazgo</option>
                     {hallazgos.filter(h => h.estado === 'abierto').map(h => (
-                      <option key={h.id} value={h.id}>{h.plan?.codigo} - {h.descripcion.substring(0, 50)}...</option>
+                      <option key={h.id} value={h.id}>{h.descripcion.substring(0, 50)}...</option>
                     ))}
                   </select>
                 </div>
@@ -359,6 +356,11 @@ export default function CapasPage() {
                         <option key={u.id} value={u.id}>{u.nombres} {u.apellidos}</option>
                       ))}
                     </select>
+                    {!nuevaCapa.responsable_id && (
+                      <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
+                        <AlertTriangle size={12} /> Esta CAPA no tiene responsable asignado
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Fecha Implementación</label>
@@ -408,7 +410,7 @@ export default function CapasPage() {
                   </p></div>
                   {capaSeleccionada.fecha_implementacion && <div><span className="text-sm text-slate-500 font-medium">Fecha Implementación</span><p className="text-slate-800 mt-1">{capaSeleccionada.fecha_implementacion}</p></div>}
                 </div>
-                {capaSeleccionada.hallazgo && <div><span className="text-sm text-slate-500 font-medium">Hallazgo Origen</span><p className="text-slate-800 mt-1">{capaSeleccionada.hallazgo.codigo} - {capaSeleccionada.hallazgo.descripcion}</p></div>}
+                {capaSeleccionada.hallazgo && <div><span className="text-sm text-slate-500 font-medium">Hallazgo Origen</span><p className="text-slate-800 mt-1">{capaSeleccionada.hallazgo.descripcion}</p></div>}
                 <div className="pt-4 border-t border-slate-100 flex justify-end">
                   <button onClick={() => setModalVer(false)} className="px-4 py-2 border border-slate-300 text-slate-600 rounded-lg hover:bg-slate-50">
                     Cerrar
@@ -449,7 +451,7 @@ export default function CapasPage() {
                   <select className="w-full px-3 py-2 border border-slate-300 rounded-lg" value={nuevaCapa.hallazgo_id} onChange={(e) => setNuevaCapa({ ...nuevaCapa, hallazgo_id: e.target.value })}>
                     <option value="">Sin hallazgo</option>
                     {hallazgos.filter(h => h.estado === 'abierto').map(h => (
-                      <option key={h.id} value={h.id}>{h.plan?.codigo} - {h.descripcion.substring(0, 50)}...</option>
+                      <option key={h.id} value={h.id}>{h.descripcion.substring(0, 50)}...</option>
                     ))}
                   </select>
                 </div>
@@ -474,6 +476,11 @@ export default function CapasPage() {
                         <option key={u.id} value={u.id}>{u.nombres} {u.apellidos}</option>
                       ))}
                     </select>
+                    {!nuevaCapa.responsable_id && (
+                      <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
+                        <AlertTriangle size={12} /> Esta CAPA no tiene responsable asignado
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Fecha Implementación</label>

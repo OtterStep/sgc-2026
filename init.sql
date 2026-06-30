@@ -267,7 +267,7 @@ CREATE TABLE capas (
     descripcion TEXT NOT NULL,
     causa_raiz TEXT,
     accion_propuesta TEXT NOT NULL,
-    responsable_id UUID NOT NULL REFERENCES usuarios(id),
+    responsable_id UUID REFERENCES usuarios(id),
     fecha_implementacion DATE,
     fecha_verificacion DATE,
     evidencia_url VARCHAR(500),

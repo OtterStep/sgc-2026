@@ -37,7 +37,9 @@ export const actualizarPlan = async (req, res) => {
 export const eliminarPlan = async (req, res) => {
   try {
     const { id } = req.params;
-    await PlanAuditoria.destroy({ where: { id } });
+    const plan = await PlanAuditoria.findByPk(id);
+    if (!plan) return res.status(404).json({ error: 'Plan no encontrado' });
+    await plan.destroy();
     res.json({ message: 'Plan eliminado' });
   } catch (err) {
     res.status(500).json({ error: formatError(err) });
@@ -104,7 +106,9 @@ export const cerrarHallazgo = async (req, res) => {
 export const eliminarHallazgo = async (req, res) => {
   try {
     const { id } = req.params;
-    await Hallazgo.destroy({ where: { id } });
+    const hallazgo = await Hallazgo.findByPk(id);
+    if (!hallazgo) return res.status(404).json({ error: 'Hallazgo no encontrado' });
+    await hallazgo.destroy();
     res.json({ message: 'Hallazgo eliminado' });
   } catch (err) {
     res.status(500).json({ error: formatError(err) });

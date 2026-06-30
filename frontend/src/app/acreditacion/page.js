@@ -17,9 +17,14 @@ export default function AcreditacionPage() {
   const [estandarSeleccionado, setEstandarSeleccionado] = useState(null);
   const [formEstandar, setFormEstandar] = useState({ codigo: '', nombre: '', organizacion: '' });
 
+  // Modal Autoevaluacion
+  const [mostrarModalAuto, setMostrarModalAuto] = useState(false);
+  const [autoSeleccionada, setAutoSeleccionada] = useState(null);
+  const [autoEditando, setAutoEditando] = useState(null);
+  const [formAuto, setFormAuto] = useState({ periodo: '', estandar_id: '' });
+
   // Modal Detalle Autoevaluacion
   const [mostrarDetalleAuto, setMostrarDetalleAuto] = useState(false);
-  const [autoSeleccionada, setAutoSeleccionada] = useState(null);
 
   useEffect(() => { cargarDatos(); }, []);
 
@@ -86,6 +91,27 @@ export default function AcreditacionPage() {
     setMostrarDetalleAuto(true);
   };
 
+  const abrirModalNuevaAuto = () => {
+    setAutoEditando(null);
+    setFormAuto({ periodo: '', estandar_id: '' });
+    setMostrarModalAuto(true);
+  };
+
+  const guardarAutoevaluacion = async (e) => {
+    e.preventDefault();
+    try {
+      if (autoEditando) {
+        // No hay endpoint PUT para autoevaluaciones, solo soportamos crear
+        swalError('Editar no soportado');
+      } else {
+        await axios.post('/api/v1/autoevaluaciones', formAuto);
+        swalSuccess('Autoevaluación registrada correctamente');
+      }
+      setMostrarModalAuto(false);
+      cargarDatos();
+    } catch (err) { swalError(err); }
+  };
+
   const eliminarAutoevaluacion = async (id) => {
     const confirmado = await swalConfirm('¿Estás seguro de eliminar esta autoevaluación?');
     if (confirmado) {
@@ -128,6 +154,11 @@ export default function AcreditacionPage() {
           {tab === 'estandares' && ['admin', 'gestor_calidad'].includes(usuario?.rol) && (
             <button onClick={abrirModalNuevoEstandar} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium mb-2">
               <Plus size={16} /> Nuevo Estándar
+            </button>
+          )}
+          {tab === 'autoevaluaciones' && ['admin', 'gestor_calidad'].includes(usuario?.rol) && (
+            <button onClick={abrirModalNuevaAuto} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium mb-2">
+              <Plus size={16} /> Nueva Autoevaluación
             </button>
           )}
         </div>
@@ -239,6 +270,37 @@ export default function AcreditacionPage() {
               </div>
               <div className="pt-4 flex gap-3">
                 <button type="button" onClick={() => setMostrarModalEstandar(false)} className="flex-1 px-4 py-2 text-slate-600 bg-slate-100 rounded-xl hover:bg-slate-200 font-medium transition-colors">Cancelar</button>
+                <button type="submit" className="flex-1 px-4 py-2 text-white bg-blue-600 rounded-xl hover:bg-blue-700 font-medium transition-colors">Guardar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL CREAR AUTOEVALUACION */}
+      {mostrarModalAuto && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+              <h3 className="font-semibold text-slate-800 text-lg">Nueva Autoevaluación</h3>
+              <button onClick={() => setMostrarModalAuto(false)} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+            </div>
+            <form onSubmit={guardarAutoevaluacion} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Periodo</label>
+                <input required type="text" className="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                  placeholder="Ej. 2026-I" value={formAuto.periodo} onChange={e => setFormAuto({...formAuto, periodo: e.target.value})} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Estándar</label>
+                <select required className="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                  value={formAuto.estandar_id} onChange={e => setFormAuto({...formAuto, estandar_id: e.target.value})}>
+                  <option value="">Seleccionar estándar</option>
+                  {estandares.map(e => <option key={e.id} value={e.id}>{e.codigo} - {e.nombre}</option>)}
+                </select>
+              </div>
+              <div className="pt-4 flex gap-3">
+                <button type="button" onClick={() => setMostrarModalAuto(false)} className="flex-1 px-4 py-2 text-slate-600 bg-slate-100 rounded-xl hover:bg-slate-200 font-medium transition-colors">Cancelar</button>
                 <button type="submit" className="flex-1 px-4 py-2 text-white bg-blue-600 rounded-xl hover:bg-blue-700 font-medium transition-colors">Guardar</button>
               </div>
             </form>

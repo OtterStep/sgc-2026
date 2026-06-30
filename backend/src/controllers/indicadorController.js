@@ -1,5 +1,6 @@
 import { Op } from 'sequelize';
 import { Indicador, MedicionIndicador, Proceso, PeriodoAcademico } from '../models/index.js';
+import { sequelize } from '../config/database.js';
 import { generarPDFReporteIndicadores } from '../services/pdfService.js';
 import { formatError, prepareCreateData } from '../utils/errorHandler.js';
 
@@ -39,14 +40,20 @@ export const actualizarIndicador = async (req, res) => {
 };
 
 export const eliminarIndicador = async (req, res) => {
+  const t = await sequelize.transaction();
   try {
     const { id } = req.params;
-    const indicador = await Indicador.findByPk(id);
-    if (!indicador) return res.status(404).json({ error: 'Indicador no encontrado' });
-    await MedicionIndicador.destroy({ where: { indicador_id: id } });
-    await Indicador.destroy({ where: { id } });
+    const indicador = await Indicador.findByPk(id, { transaction: t });
+    if (!indicador) {
+      await t.rollback();
+      return res.status(404).json({ error: 'Indicador no encontrado' });
+    }
+    await MedicionIndicador.destroy({ where: { indicador_id: id }, transaction: t });
+    await Indicador.destroy({ where: { id }, transaction: t });
+    await t.commit();
     res.json({ mensaje: 'Indicador eliminado correctamente' });
   } catch (err) {
+    await t.rollback();
     res.status(500).json({ error: formatError(err) });
   }
 };

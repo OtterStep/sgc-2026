@@ -23,7 +23,9 @@ export const crearEstandar = async (req, res) => {
 export const actualizarEstandar = async (req, res) => {
   try {
     const { id } = req.params;
-    await EstandarAcreditacion.update(req.body, { where: { id } });
+    const estandar = await EstandarAcreditacion.findByPk(id);
+    if (!estandar) return res.status(404).json({ error: 'Estándar no encontrado' });
+    await estandar.update(req.body);
     res.json({ message: 'Estándar actualizado' });
   } catch (err) {
     res.status(500).json({ error: formatError(err) });
@@ -33,7 +35,9 @@ export const actualizarEstandar = async (req, res) => {
 export const eliminarEstandar = async (req, res) => {
   try {
     const { id } = req.params;
-    await EstandarAcreditacion.destroy({ where: { id } });
+    const estandar = await EstandarAcreditacion.findByPk(id);
+    if (!estandar) return res.status(404).json({ error: 'Estándar no encontrado' });
+    await estandar.destroy();
     res.json({ message: 'Estándar eliminado' });
   } catch (err) {
     res.status(500).json({ error: formatError(err) });

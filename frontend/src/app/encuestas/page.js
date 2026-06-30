@@ -39,7 +39,7 @@ const DIRIGIDO_OPTS = [
 
 const TIPO_PREGUNTA_OPTS = Object.entries(TIPO_LABELS).map(([value, label]) => ({ value, label }));
 
-const FLUJO_ESTADO = ['borrador', 'publicada', 'cerrada', 'archivada'];
+const FLUJO_ESTADO = ['borrador', 'publicada', 'en_curso', 'cerrada', 'archivada'];
 
 function badge(estado) {
   return `px-2.5 py-0.5 text-xs font-medium rounded-full ${ESTADO_COLORS[estado] ?? 'bg-slate-100 text-slate-600'}`;

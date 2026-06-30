@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { GitBranch, Plus, Download, Search, Edit, Eye, EyeOff, LayoutDashboard, List, History, Upload, Tag, X, Layers, User, Hash, FileText } from 'lucide-react';
 import { swalError, swalSuccess, swalConfirm } from '@/lib/swal';
+import { useAuth } from '@/context/AuthContext';
 
 const CLASIFICACIONES = [
   { value: 'estrategico', label: 'Estratégicos', color: 'border-l-blue-500 bg-blue-50', bg: 'bg-blue-100 text-blue-700' },
@@ -12,6 +13,7 @@ const CLASIFICACIONES = [
 ];
 
 export default function ProcesosPage() {
+  const { usuario } = useAuth();
   const [vista, setVista] = useState('diagrama');
   const [macroprocesos, setMacroprocesos] = useState([]);
   const [procesos, setProcesos] = useState([]);
@@ -20,11 +22,15 @@ export default function ProcesosPage() {
   const [versiones, setVersiones] = useState([]);
   const [filtro, setFiltro] = useState('');
   const [mostrarModal, setMostrarModal] = useState(false);
+  const [mostrarModalProceso, setMostrarModalProceso] = useState(false);
   const [mostrarModalVer, setMostrarModalVer] = useState(false);
   const [mostrarModalVersion, setMostrarModalVersion] = useState(false);
   const [nuevoMacro, setNuevoMacro] = useState({ codigo: '', nombre: '', descripcion: '', tipo: '', clasificacion_mapa: '', responsable_id: '' });
   const [macroSeleccionado, setMacroSeleccionado] = useState(null);
+  const [nuevoProceso, setNuevoProceso] = useState({ codigo: '', nombre: '', objetivo: '', alcance: '', macroproceso_id: '', responsable_id: '' });
+  const [procesoSeleccionado, setProcesoSeleccionado] = useState(null);
   const [modoEdicion, setModoEdicion] = useState(false);
+  const [modoEdicionProceso, setModoEdicionProceso] = useState(false);
   const [cambiosDesc, setCambiosDesc] = useState('');
 
   useEffect(() => { cargarDatos(); }, []);
@@ -139,13 +145,63 @@ export default function ProcesosPage() {
     } catch (err) { swalError(err); }
   };
 
+  const handleGuardarProceso = async (e) => {
+    e.preventDefault();
+    try {
+      if (modoEdicionProceso && procesoSeleccionado) {
+        await axios.put(`/api/v1/procesos/${procesoSeleccionado.id}`, nuevoProceso);
+        swalSuccess('Proceso actualizado');
+      } else {
+        await axios.post('/api/v1/procesos', nuevoProceso);
+        swalSuccess('Proceso registrado');
+      }
+      setMostrarModalProceso(false);
+      resetFormularioProceso();
+      cargarDatos();
+    } catch (err) {
+      swalError(err);
+    }
+  };
+
+  const handleEditarProceso = (p) => {
+    setProcesoSeleccionado(p);
+    setNuevoProceso({
+      codigo: p.codigo,
+      nombre: p.nombre,
+      objetivo: p.objetivo || '',
+      alcance: p.alcance || '',
+      macroproceso_id: p.macroproceso_id || '',
+      responsable_id: p.responsable_id || '',
+    });
+    setModoEdicionProceso(true);
+    setMostrarModalProceso(true);
+  };
+
+  const handleDesactivarProceso = async (p) => {
+    const confirmado = await swalConfirm('¿Desactivar este proceso?');
+    if (confirmado) {
+      try {
+        await axios.patch(`/api/v1/procesos/${p.id}/desactivar`);
+        swalSuccess('Proceso desactivado');
+        cargarDatos();
+      } catch (err) { swalError(err); }
+    }
+  };
+
   const resetFormulario = () => {
     setNuevoMacro({ codigo: '', nombre: '', descripcion: '', tipo: '', clasificacion_mapa: '', responsable_id: '' });
     setMacroSeleccionado(null);
     setModoEdicion(false);
   };
 
+  const resetFormularioProceso = () => {
+    setNuevoProceso({ codigo: '', nombre: '', objetivo: '', alcance: '', macroproceso_id: '', responsable_id: '' });
+    setProcesoSeleccionado(null);
+    setModoEdicionProceso(false);
+  };
+
   const abrirModalNuevo = () => { resetFormulario(); setMostrarModal(true); };
+  const abrirModalNuevoProceso = () => { resetFormularioProceso(); setMostrarModalProceso(true); };
   const abrirModalVersion = () => { setCambiosDesc(''); setMostrarModalVersion(true); };
 
   const descargarReporte = async () => {
@@ -341,12 +397,17 @@ export default function ProcesosPage() {
 
         {vista === 'procesos' && (
           <div className="bg-white rounded-xl shadow-sm border border-slate-200">
-            <div className="p-4 border-b border-slate-200">
-              <div className="relative">
+            <div className="p-4 border-b border-slate-200 flex items-center gap-3">
+              <div className="relative flex-1">
                 <Search className="absolute left-3 top-3 text-slate-400" size={18} />
                 <input type="text" placeholder="Buscar proceso por código o nombre..." className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-900"
                   value={filtro} onChange={(e) => setFiltro(e.target.value)} />
               </div>
+              {['admin', 'gestor_calidad'].includes(usuario?.rol) && (
+                <button onClick={abrirModalNuevoProceso} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm shrink-0">
+                  <Plus size={16} /> Nuevo Proceso
+                </button>
+              )}
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -357,6 +418,7 @@ export default function ProcesosPage() {
                     <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Macroproceso</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Responsable</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Estado</th>
+                    {['admin', 'gestor_calidad'].includes(usuario?.rol) && <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Acciones</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
@@ -371,6 +433,20 @@ export default function ProcesosPage() {
                           {p.estado}
                         </span>
                       </td>
+                      {['admin', 'gestor_calidad'].includes(usuario?.rol) && (
+                        <td className="px-6 py-4">
+                          <div className="flex gap-2">
+                            <button onClick={() => handleEditarProceso(p)} className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg" title="Editar">
+                              <Edit size={16} />
+                            </button>
+                            {p.estado === 'activo' && (
+                              <button onClick={() => handleDesactivarProceso(p)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg" title="Desactivar">
+                                <EyeOff size={16} />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -490,6 +566,65 @@ export default function ProcesosPage() {
                   <button onClick={handlePublicarVersion} className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium">Publicar Versión</button>
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Crear/Editar Proceso */}
+        {mostrarModalProceso && (
+          <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-xl max-w-xl w-full border border-slate-100 overflow-hidden">
+              <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                <h3 className="font-semibold text-slate-800 text-lg flex items-center gap-2">
+                  <GitBranch className="text-blue-600" size={20} />
+                  {modoEdicionProceso ? 'Editar Proceso' : 'Nuevo Proceso'}
+                </h3>
+                <button onClick={() => setMostrarModalProceso(false)} className="text-slate-400 hover:text-slate-600 text-2xl font-semibold focus:outline-none">&times;</button>
+              </div>
+              <form onSubmit={handleGuardarProceso} className="p-6 space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Código</label>
+                    <input type="text" placeholder="Ej. PRO-001" className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-900"
+                      value={nuevoProceso.codigo} onChange={(e) => setNuevoProceso({ ...nuevoProceso, codigo: e.target.value })} required />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Macroproceso</label>
+                    <select className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-slate-900"
+                      value={nuevoProceso.macroproceso_id} onChange={(e) => setNuevoProceso({ ...nuevoProceso, macroproceso_id: e.target.value })}>
+                      <option value="">Sin macroproceso</option>
+                      {macroprocesos.filter(m => m.estado !== false).map((m) => <option key={m.id} value={m.id}>{m.codigo} - {m.nombre}</option>)}
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Nombre</label>
+                  <input type="text" placeholder="Nombre del proceso" className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-900"
+                    value={nuevoProceso.nombre} onChange={(e) => setNuevoProceso({ ...nuevoProceso, nombre: e.target.value })} required />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Objetivo</label>
+                  <textarea rows={2} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-900"
+                    placeholder="Objetivo del proceso..." value={nuevoProceso.objetivo} onChange={(e) => setNuevoProceso({ ...nuevoProceso, objetivo: e.target.value })} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Alcance</label>
+                  <textarea rows={2} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-900"
+                    placeholder="Alcance del proceso..." value={nuevoProceso.alcance} onChange={(e) => setNuevoProceso({ ...nuevoProceso, alcance: e.target.value })} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Responsable</label>
+                  <select className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-slate-900"
+                    value={nuevoProceso.responsable_id} onChange={(e) => setNuevoProceso({ ...nuevoProceso, responsable_id: e.target.value })}>
+                    <option value="">Sin responsable</option>
+                    {usuarios.map((u) => <option key={u.id} value={u.id}>{u.nombres} {u.apellidos}</option>)}
+                  </select>
+                </div>
+                <div className="pt-4 border-t border-slate-100 flex justify-end gap-3">
+                  <button type="button" onClick={() => setMostrarModalProceso(false)} className="px-4 py-2 border border-slate-300 text-slate-600 rounded-lg hover:bg-slate-50 font-medium">Cancelar</button>
+                  <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">{modoEdicionProceso ? 'Guardar Cambios' : 'Guardar'}</button>
+                </div>
+              </form>
             </div>
           </div>
         )}

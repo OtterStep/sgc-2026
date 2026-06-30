@@ -1,4 +1,5 @@
 import { Capa, Hallazgo, Usuario } from '../models/index.js';
+import { sequelize } from '../config/database.js';
 import { generarPDF } from '../services/pdfService.js';
 import { formatError, prepareCreateData } from '../utils/errorHandler.js';
 
@@ -6,7 +7,7 @@ export const listarCapas = async (req, res) => {
   try {
     const capas = await Capa.findAll({
       include: [
-        { model: Hallazgo, as: 'hallazgo', attributes: ['id', 'codigo', 'descripcion'] },
+        { model: Hallazgo, as: 'hallazgo', attributes: ['id', 'descripcion'] },
         { model: Usuario, as: 'responsable', attributes: ['id', 'nombres', 'apellidos'] },
       ],
       order: [['creado_en', 'DESC']],
@@ -21,7 +22,7 @@ export const obtenerCapa = async (req, res) => {
   try {
     const capa = await Capa.findByPk(req.params.id, {
       include: [
-        { model: Hallazgo, as: 'hallazgo', attributes: ['id', 'codigo', 'descripcion'] },
+        { model: Hallazgo, as: 'hallazgo', attributes: ['id', 'descripcion'] },
         { model: Usuario, as: 'responsable', attributes: ['id', 'nombres', 'apellidos'] },
       ],
     });
@@ -59,6 +60,7 @@ export const actualizarCapa = async (req, res) => {
 };
 
 export const actualizarEstadoCapa = async (req, res) => {
+  const t = await sequelize.transaction();
   try {
     const { id } = req.params;
     const { estado, efectividad } = req.body;
@@ -68,15 +70,18 @@ export const actualizarEstadoCapa = async (req, res) => {
       updateData.efectividad = efectividad;
     }
 
-    const capa = await Capa.findByPk(id);
-    if (!capa) return res.status(404).json({ error: 'CAPA no encontrada' });
-    await capa.update(updateData);
+    const capa = await Capa.findByPk(id, { transaction: t });
+    if (!capa) {
+      await t.rollback();
+      return res.status(404).json({ error: 'CAPA no encontrada' });
+    }
+    await capa.update(updateData, { transaction: t });
 
     if (estado === 'cerrada' && capa.hallazgo_id) {
       const fechaHoy = new Date().toISOString().split('T')[0];
       await Hallazgo.update(
         { estado: 'cerrado', fecha_cierre: fechaHoy, modificado_por: req.usuario.id },
-        { where: { id: capa.hallazgo_id } }
+        { where: { id: capa.hallazgo_id }, transaction: t }
       );
     }
 
@@ -97,11 +102,13 @@ export const actualizarEstadoCapa = async (req, res) => {
         ...dataNueva,
         creado_por: req.usuario.id,
         estado: 'registrada',
-      });
+      }, { transaction: t });
     }
 
+    await t.commit();
     res.json({ mensaje: 'CAPA actualizada correctamente' });
   } catch (err) {
+    await t.rollback();
     res.status(500).json({ error: formatError(err) });
   }
 };

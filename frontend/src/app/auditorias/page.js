@@ -34,7 +34,7 @@ export default function AuditoriasPage() {
       const [p, h, u] = await Promise.all([
         axios.get('/api/v1/planes-auditoria'),
         axios.get('/api/v1/hallazgos'),
-        axios.get('/api/v1/auth/usuarios'),
+        axios.get('/api/v1/usuarios'),
       ]);
       setPlanes(p.data);
       setHallazgos(h.data);

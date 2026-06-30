@@ -37,8 +37,18 @@ const esperarDB = async (intentos = 10, intervalo = 3000) => {
   }
 };
 
+const ejecutarMigraciones = async () => {
+  try {
+    await sequelize.query('ALTER TABLE sgc.capas ALTER COLUMN responsable_id DROP NOT NULL');
+    console.log('✅ Migración: responsable_id nullable en capas');
+  } catch {
+    // La columna ya es nullable o no existe, ignorar
+  }
+};
+
 const iniciar = async () => {
   await esperarDB();
+  await ejecutarMigraciones();
   app.listen(PORT, () => console.log(`🚀 SGC Backend en puerto ${PORT}`));
 };
 

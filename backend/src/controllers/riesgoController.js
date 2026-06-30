@@ -26,7 +26,10 @@ export const crearRiesgo = async (req, res) => {
 export const actualizarRiesgo = async (req, res) => {
   try {
     const { id } = req.params;
-    await Riesgo.update(req.body, { where: { id } });
+    const riesgo = await Riesgo.findByPk(id);
+    if (!riesgo) return res.status(404).json({ error: 'Riesgo no encontrado' });
+    const data = prepareCreateData(req.body, ['proceso_id']);
+    await Riesgo.update(data, { where: { id } });
     res.json({ message: 'Riesgo actualizado' });
   } catch (err) {
     res.status(500).json({ error: formatError(err) });
