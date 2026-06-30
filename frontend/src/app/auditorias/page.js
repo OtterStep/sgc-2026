@@ -196,12 +196,12 @@ export default function AuditoriasPage() {
             ))}
           </div>
           <div className="mb-2">
-            {tab === 'planes' && (
+            {tab === 'planes' && ['admin', 'gestor_calidad', 'auditor'].includes(usuarioActual?.rol) && (
               <button onClick={abrirModalNuevoPlan} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
                 <Plus size={16} /> Nuevo Plan
               </button>
             )}
-            {tab === 'hallazgos' && (
+            {tab === 'hallazgos' && ['admin', 'auditor'].includes(usuarioActual?.rol) && (
               <button onClick={() => abrirModalNuevoHallazgo()} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
                 <Plus size={16} /> Nuevo Hallazgo
               </button>
@@ -291,7 +291,7 @@ export default function AuditoriasPage() {
                         {h.fecha_cierre && <span>Cerrado el: {h.fecha_cierre}</span>}
                       </div>
                       <div className="flex gap-2">
-                        {h.estado === 'abierto' && (
+                        {h.estado === 'abierto' && ['admin', 'auditor'].includes(usuarioActual?.rol) && (
                           <button onClick={() => cerrarHallazgo(h)} className="px-3 py-1.5 flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg font-semibold transition-colors">
                             <CheckCircle size={14} /> Marcar como Cerrado
                           </button>

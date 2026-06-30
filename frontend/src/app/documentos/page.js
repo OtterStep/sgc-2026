@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FileText, Download, Plus, Search, Edit, Eye, Archive, Send, CheckCircle, RotateCcw, Clock3, History } from 'lucide-react';
 import { swalError, swalSuccess, swalConfirm } from '@/lib/swal';
+import { useAuth } from '@/context/AuthContext';
 
 const ESTADO_STYLES = {
   borrador: 'bg-blue-100 text-blue-700',
@@ -20,6 +21,10 @@ const ESTADO_LABEL = {
 };
 
 export default function DocumentosPage() {
+  const { usuario } = useAuth();
+  const esGestion = ['admin', 'gestor_calidad'].includes(usuario?.rol);
+  const esSoloLectura = ['docente', 'estudiante', 'egresado', 'auditor'].includes(usuario?.rol);
+  const esExterno = ['docente', 'estudiante', 'egresado'].includes(usuario?.rol);
   const [documentos, setDocumentos] = useState([]);
   const [filtro, setFiltro] = useState('');
   const [mostrarModal, setMostrarModal] = useState(false);
@@ -44,7 +49,8 @@ export default function DocumentosPage() {
 
   const cargarDocumentos = async () => {
     try {
-      const { data } = await axios.get('/api/v1/documentos');
+      const url = esExterno ? '/api/v1/documentos?estado=aprobado' : '/api/v1/documentos';
+      const { data } = await axios.get(url);
       setDocumentos(data);
     } catch (err) {
       setDocumentos([
@@ -236,9 +242,11 @@ export default function DocumentosPage() {
             <button onClick={descargarReporte} className="flex items-center gap-2 px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-800">
               <Download size={18} /> Reporte PDF
             </button>
-            <button onClick={abrirModalNuevo} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-              <Plus size={18} /> Nuevo Documento
-            </button>
+            {esGestion && (
+              <button onClick={abrirModalNuevo} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                <Plus size={18} /> Nuevo Documento
+              </button>
+            )}
           </div>
         </div>
 
@@ -287,7 +295,7 @@ export default function DocumentosPage() {
                           <Eye size={16} />
                         </button>
 
-                        {doc.estado === 'borrador' && (
+                        {doc.estado === 'borrador' && esGestion && (
                           <>
                             <button onClick={() => handleEditar(doc)} className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg" title="Editar">
                               <Edit size={16} />
@@ -298,7 +306,7 @@ export default function DocumentosPage() {
                           </>
                         )}
 
-                        {doc.estado === 'en_revision' && (
+                        {doc.estado === 'en_revision' && esGestion && (
                           <>
                             <button onClick={() => handleAprobar(doc)} className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg" title="Aprobar documento">
                               <CheckCircle size={16} />
@@ -309,7 +317,7 @@ export default function DocumentosPage() {
                           </>
                         )}
 
-                        {doc.estado === 'aprobado' && (
+                        {doc.estado === 'aprobado' && esGestion && (
                           <>
                             <button onClick={() => handleEditar(doc)} className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg" title="Editar (genera nueva versión)">
                               <Edit size={16} />

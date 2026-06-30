@@ -417,9 +417,11 @@ export default function AcreditacionPage() {
             </div>
             <div className="p-6 overflow-y-auto flex-1">
               <div className="flex justify-end mb-4">
-                <button onClick={abrirNuevoFactor} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
-                  <Plus size={16} /> Nuevo Factor
-                </button>
+                {esGestion && (
+                  <button onClick={abrirNuevoFactor} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
+                    <Plus size={16} /> Nuevo Factor
+                  </button>
+                )}
               </div>
               {factores.length === 0 ? (
                 <p className="text-center text-slate-400 py-10">No hay factores registrados para este estándar.</p>
@@ -436,8 +438,8 @@ export default function AcreditacionPage() {
                         {f.descripcion && <p className="text-xs text-slate-500 mt-1">{f.descripcion}</p>}
                       </div>
                       <div className="flex gap-2 shrink-0 ml-4">
-                        <button onClick={() => abrirEditarFactor(f)} className="text-blue-600 hover:text-blue-800 text-sm font-medium"><Edit size={14} /></button>
-                        <button onClick={() => eliminarFactor(f.id)} className="text-red-600 hover:text-red-800 text-sm font-medium"><Trash2 size={14} /></button>
+                        {esGestion && <button onClick={() => abrirEditarFactor(f)} className="text-blue-600 hover:text-blue-800 text-sm font-medium"><Edit size={14} /></button>}
+                        {esGestion && <button onClick={() => eliminarFactor(f.id)} className="text-red-600 hover:text-red-800 text-sm font-medium"><Trash2 size={14} /></button>}
                       </div>
                     </div>
                   ))}

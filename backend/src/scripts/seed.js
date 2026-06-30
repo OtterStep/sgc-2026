@@ -559,7 +559,7 @@ const seed = async () => {
     ];
     const testUsuarios = {};
     for (const d of testUsuariosData) {
-      const [u] = await Usuario.findOrCreate({ where: { codigo: d.codigo }, defaults: { ...d, contrasena_hash: '$2a$10$WIJEFhvFbf5JcxVSHvevROXEIkk7EM6rFPfUIPQvyCoXfC.FxPjRm', creado_por: admin.id, modificado_por: admin.id } });
+      const [u] = await Usuario.findOrCreate({ where: { codigo: d.codigo }, defaults: { ...d, contrasena_hash: '$2a$10$R/1eNHbcx0tMhbBWFYU1qOnkWIR2emBhqMX55F.p3EADhLezGL6eq', creado_por: admin.id, modificado_por: admin.id } });
       testUsuarios[d.codigo] = u;
     }
     console.log('✅ Usuarios de prueba creados');

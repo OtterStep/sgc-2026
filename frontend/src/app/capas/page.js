@@ -5,6 +5,7 @@ import axios from 'axios';
 import { ShieldAlert, AlertTriangle, Plus, Download, Eye, Edit, Trash2, Lock } from 'lucide-react';
 import { swalError, swalSuccess, swalConfirm } from '@/lib/swal';
 import ModalCerrarCapa from '@/components/capas/CerrarCapa';
+import { useAuth } from '@/context/AuthContext';
 
 const ESTADOS_CAPA = ['registrada', 'en_implementacion', 'implementada', 'verificada'];
 
@@ -31,6 +32,10 @@ export default function CapasPage() {
     responsable_id: '',
     fecha_implementacion: '',
   });
+
+  const { usuario } = useAuth();
+  const esGestion = ['admin', 'gestor_calidad'].includes(usuario?.rol);
+  const esAuditor = usuario?.rol === 'auditor';
 
   useEffect(() => {
     cargarDatos();
@@ -194,9 +199,11 @@ export default function CapasPage() {
             <button onClick={descargarReporte} className="flex items-center gap-2 px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-800">
               <Download size={18} /> Reporte PDF
             </button>
-            <button onClick={() => setModalNuevo(true)} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-              <Plus size={18} /> Nueva CAPA
-            </button>
+            {esGestion && (
+              <button onClick={() => setModalNuevo(true)} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                <Plus size={18} /> Nueva CAPA
+              </button>
+            )}
           </div>
         </div>
 
@@ -228,7 +235,7 @@ export default function CapasPage() {
                         <span className={`px-2 py-1 text-xs rounded-full ${getEstadoBadgeClass(capa.estado)}`}>
                           {capa.estado}
                         </span>
-                        {capa.estado !== 'cerrada' && (
+                        {(esGestion || esAuditor) && capa.estado !== 'cerrada' && (
                           <select
                             className="px-2 py-1 text-xs border border-slate-300 rounded"
                             value={capa.estado}
@@ -256,7 +263,7 @@ export default function CapasPage() {
                           <Eye size={16} />
                         </button>
 
-                        {capa.estado !== 'cerrada' && (
+                        {esGestion && capa.estado !== 'cerrada' && (
                           <button onClick={() => abrirModalEditar(capa)} className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg" title="Editar">
                             <Edit size={16} />
                           </button>
@@ -264,7 +271,7 @@ export default function CapasPage() {
 
                         {/* NUEVO: botón "Cerrar CAPA" — abre el modal de calificación de efectividad.
                             Reemplaza los 3 botones sueltos de efectividad que existían antes. */}
-                        {['implementada', 'verificada'].includes(capa.estado) && (
+                        {(esGestion || esAuditor) && ['implementada', 'verificada'].includes(capa.estado) && (
                           <button
                             onClick={() => abrirModalCerrar(capa)}
                             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 text-white border border-amber-400 hover:bg-slate-700"
@@ -274,7 +281,7 @@ export default function CapasPage() {
                           </button>
                         )}
 
-                        {capa.estado !== 'cerrada' && (
+                        {esGestion && capa.estado !== 'cerrada' && (
                           <button onClick={() => handleEliminar(capa)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg" title="Eliminar">
                             <Trash2 size={16} />
                           </button>

@@ -466,10 +466,10 @@ INSERT INTO tipos_documento (codigo, nombre, descripcion, requiere_aprobacion) V
 ('FOR', 'Formato', 'Formatos y plantillas', FALSE);
 
 INSERT INTO usuarios (codigo, nombres, apellidos, correo, contrasena_hash, rol, facultad, escuela, activo) VALUES
-('ADM-001', 'Admin', 'SGC', 'admin@unitru.edu.pe', '$2a$10$WIJEFhvFbf5JcxVSHvevROXEIkk7EM6rFPfUIPQvyCoXfC.FxPjRm', 'admin', 'Ingeniería', 'Sistemas', TRUE),
-('GES-001', 'Gestor', 'Calidad', 'gestor@unitru.edu.pe', '$2a$10$WIJEFhvFbf5JcxVSHvevROXEIkk7EM6rFPfUIPQvyCoXfC.FxPjRm', 'gestor_calidad', 'Ingeniería', 'Sistemas', TRUE),
-('AUD-001', 'Auditor', 'Interno', 'auditor@unitru.edu.pe', '$2a$10$WIJEFhvFbf5JcxVSHvevROXEIkk7EM6rFPfUIPQvyCoXfC.FxPjRm', 'auditor', 'Ciencias', 'Contabilidad', TRUE),
-('DOC-001', 'Docente', 'Principal', 'docente@unitru.edu.pe', '$2a$10$WIJEFhvFbf5JcxVSHvevROXEIkk7EM6rFPfUIPQvyCoXfC.FxPjRm', 'docente', 'Ingeniería', 'Sistemas', TRUE);
+('ADM-001', 'Admin', 'SGC', 'admin@unitru.edu.pe', '$2a$10$R/1eNHbcx0tMhbBWFYU1qOnkWIR2emBhqMX55F.p3EADhLezGL6eq', 'admin', 'Ingeniería', 'Sistemas', TRUE),
+('GES-001', 'Gestor', 'Calidad', 'gestor@unitru.edu.pe', '$2a$10$R/1eNHbcx0tMhbBWFYU1qOnkWIR2emBhqMX55F.p3EADhLezGL6eq', 'gestor_calidad', 'Ingeniería', 'Sistemas', TRUE),
+('AUD-001', 'Auditor', 'Interno', 'auditor@unitru.edu.pe', '$2a$10$R/1eNHbcx0tMhbBWFYU1qOnkWIR2emBhqMX55F.p3EADhLezGL6eq', 'auditor', 'Ciencias', 'Contabilidad', TRUE),
+('DOC-001', 'Docente', 'Principal', 'docente@unitru.edu.pe', '$2a$10$R/1eNHbcx0tMhbBWFYU1qOnkWIR2emBhqMX55F.p3EADhLezGL6eq', 'docente', 'Ingeniería', 'Sistemas', TRUE);
 
 INSERT INTO parametros_sistema (clave, valor, descripcion) VALUES
 ('institucion_nombre', 'Universidad Nacional de Trujillo', 'Nombre de la institución'),

@@ -272,8 +272,10 @@ export default function ProcesosPage() {
                         </div>
                       </div>
                       <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => handleEditar(m)} className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg" title="Editar"><Edit size={14} /></button>
-                        {m.estado !== false && (
+                        {['admin', 'gestor_calidad'].includes(usuario?.rol) && (
+                          <button onClick={() => handleEditar(m)} className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg" title="Editar"><Edit size={14} /></button>
+                        )}
+                        {m.estado !== false && ['admin', 'gestor_calidad'].includes(usuario?.rol) && (
                           <button onClick={() => handleDesactivar(m)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg" title="Desactivar"><EyeOff size={14} /></button>
                         )}
                       </div>
@@ -284,7 +286,7 @@ export default function ProcesosPage() {
             </div>
           );
         })}
-
+        
         {grupos.sin_clasificar && grupos.sin_clasificar.length > 0 && (
           <div className="border-l-4 border-l-slate-400 rounded-xl border bg-slate-50 shadow-sm overflow-hidden">
             <div className="px-5 py-3 bg-slate-100">
@@ -294,7 +296,9 @@ export default function ProcesosPage() {
               {grupos.sin_clasificar.map(m => (
                 <div key={m.id} className="px-5 py-3 flex items-center justify-between hover:bg-slate-100/50">
                   <span className="text-sm text-slate-600">{m.codigo} - {m.nombre}</span>
-                  <button onClick={() => handleEditar(m)} className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg"><Edit size={14} /></button>
+                  {['admin', 'gestor_calidad'].includes(usuario?.rol) && (
+                    <button onClick={() => handleEditar(m)} className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg"><Edit size={14} /></button>
+                  )}
                 </div>
               ))}
             </div>
@@ -317,10 +321,10 @@ export default function ProcesosPage() {
           <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2"><GitBranch /> Mapa de Procesos</h2>
           <div className="flex gap-2">
             <button onClick={descargarReporte} className="flex items-center gap-2 px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-800 text-sm"><Download size={16} /> PDF</button>
-            {vista === 'diagrama' && (
+            {vista === 'diagrama' && ['admin', 'gestor_calidad'].includes(usuario?.rol) && (
               <button onClick={abrirModalVersion} className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm"><Upload size={16} /> Publicar Versión</button>
             )}
-            {vista === 'diagrama' && (
+            {vista === 'diagrama' && ['admin', 'gestor_calidad'].includes(usuario?.rol) && (
               <button onClick={abrirModalNuevo} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"><Plus size={16} /> Nuevo Macroproceso</button>
             )}
           </div>
@@ -364,7 +368,7 @@ export default function ProcesosPage() {
                     <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Clasificación</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Responsable</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Estado</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Acciones</th>
+                    {['admin', 'gestor_calidad'].includes(usuario?.rol) && <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Acciones</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
@@ -383,14 +387,16 @@ export default function ProcesosPage() {
                           {m.estado !== false ? 'Activo' : 'Inactivo'}
                         </span>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="flex gap-2">
-                          <button onClick={() => handleEditar(m)} className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg" title="Editar"><Edit size={16} /></button>
-                          {m.estado !== false && (
-                            <button onClick={() => handleDesactivar(m)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg" title="Desactivar"><EyeOff size={16} /></button>
-                          )}
-                        </div>
-                      </td>
+                      {['admin', 'gestor_calidad'].includes(usuario?.rol) && (
+                        <td className="px-6 py-4">
+                          <div className="flex gap-2">
+                            <button onClick={() => handleEditar(m)} className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg" title="Editar"><Edit size={16} /></button>
+                            {m.estado !== false && (
+                              <button onClick={() => handleDesactivar(m)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg" title="Desactivar"><EyeOff size={16} /></button>
+                            )}
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Activity, Plus, Download, AlertTriangle, Edit, Trash2, X, Grid3X3, List, Thermometer, Shield } from 'lucide-react';
 import { swalError, swalSuccess, swalConfirm } from '@/lib/swal';
+import { useAuth } from '@/context/AuthContext';
 
 const CATEGORIAS = ['estrategico', 'operativo', 'academico', 'financiero', 'legal', 'tecnologico', 'reputacional'];
 
@@ -15,6 +16,8 @@ const NIVEL_COLORS = {
 };
 
 export default function RiesgosPage() {
+  const { usuario } = useAuth();
+  const esGestion = ['admin', 'gestor_calidad'].includes(usuario?.rol);
   const [riesgos, setRiesgos] = useState([]);
   const [procesos, setProcesos] = useState([]);
   const [mostrarForm, setMostrarForm] = useState(false);
@@ -288,9 +291,11 @@ export default function RiesgosPage() {
             <button onClick={descargarReporte} className="flex items-center gap-2 px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-800">
               <Download size={18} /> Reporte PDF
             </button>
-            <button onClick={abrirModalNuevo} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">
-              <Plus size={18} /> Nuevo Riesgo
-            </button>
+            {esGestion && (
+              <button onClick={abrirModalNuevo} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">
+                <Plus size={18} /> Nuevo Riesgo
+              </button>
+            )}
           </div>
         </div>
 
@@ -356,15 +361,21 @@ export default function RiesgosPage() {
                     </div>
 
                     <div className="flex gap-2">
-                      <button onClick={() => abrirGestionPlanes(r)} className="flex-1 py-2 border border-amber-200 text-amber-600 rounded-lg hover:bg-amber-50 flex justify-center items-center gap-2 text-sm font-medium transition-colors">
-                        <Shield size={16} /> Mitigación
-                      </button>
-                      <button onClick={() => abrirModalEditar(r)} className="flex-1 py-2 border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 flex justify-center items-center gap-2 text-sm font-medium transition-colors">
-                        <Edit size={16} /> Editar
-                      </button>
-                      <button onClick={() => handleEliminar(r.id)} className="py-2 px-3 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-colors">
-                        <Trash2 size={16} />
-                      </button>
+                      {esGestion && (
+                        <button onClick={() => abrirGestionPlanes(r)} className="flex-1 py-2 border border-amber-200 text-amber-600 rounded-lg hover:bg-amber-50 flex justify-center items-center gap-2 text-sm font-medium transition-colors">
+                          <Shield size={16} /> Mitigación
+                        </button>
+                      )}
+                      {esGestion && (
+                        <button onClick={() => abrirModalEditar(r)} className="flex-1 py-2 border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 flex justify-center items-center gap-2 text-sm font-medium transition-colors">
+                          <Edit size={16} /> Editar
+                        </button>
+                      )}
+                      {esGestion && (
+                        <button onClick={() => handleEliminar(r.id)} className="py-2 px-3 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-colors">
+                          <Trash2 size={16} />
+                        </button>
+                      )}
                     </div>
                   </div>
                 );
@@ -461,9 +472,11 @@ export default function RiesgosPage() {
             </div>
             <div className="p-6 overflow-y-auto flex-1">
               <div className="flex justify-end mb-4">
-                <button onClick={abrirNuevoPlan} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
-                  <Plus size={16} /> Nuevo Plan
-                </button>
+                {esGestion && (
+                  <button onClick={abrirNuevoPlan} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
+                    <Plus size={16} /> Nuevo Plan
+                  </button>
+                )}
               </div>
               {planes.length === 0 ? (
                 <p className="text-center text-slate-400 py-10">No hay planes de mitigación para este riesgo.</p>
@@ -488,8 +501,8 @@ export default function RiesgosPage() {
                           }`}>
                             {p.estado === 'en_ejecucion' ? 'En Ejecución' : p.estado}
                           </span>
-                          <button onClick={() => abrirEditarPlan(p)} className="text-blue-600 hover:text-blue-800"><Edit size={14} /></button>
-                          <button onClick={() => eliminarPlan(p.id)} className="text-red-600 hover:text-red-800"><Trash2 size={14} /></button>
+                          {esGestion && <button onClick={() => abrirEditarPlan(p)} className="text-blue-600 hover:text-blue-800"><Edit size={14} /></button>}
+                          {esGestion && <button onClick={() => eliminarPlan(p.id)} className="text-red-600 hover:text-red-800"><Trash2 size={14} /></button>}
                         </div>
                       </div>
                     </div>

@@ -77,7 +77,7 @@ router.get('/autoevaluaciones', verificarToken, acrCtrl.listarAutoevaluaciones);
 router.post('/autoevaluaciones', verificarToken, verificarRol(['admin', 'gestor_calidad']), acrCtrl.crearAutoevaluacion);
 router.delete('/autoevaluaciones/:id', verificarToken, verificarRol(['admin', 'gestor_calidad']), acrCtrl.eliminarAutoevaluacion);
 router.get('/evaluaciones-criterio', verificarToken, acrCtrl.listarEvaluacionesCriterio);
-router.post('/evaluaciones-criterio', verificarToken, acrCtrl.evaluarCriterio);
+router.post('/evaluaciones-criterio', verificarToken, verificarRol(['admin', 'gestor_calidad']), acrCtrl.evaluarCriterio);
 router.put('/evaluaciones-criterio/:id', verificarToken, verificarRol(['admin', 'gestor_calidad']), acrCtrl.actualizarEvaluacionCriterio);
 
 // Auditorías
@@ -88,9 +88,9 @@ router.put('/planes-auditoria/:id', verificarToken, verificarRol(['admin', 'gest
 router.delete('/planes-auditoria/:id', verificarToken, verificarRol(['admin', 'gestor_calidad']), audCtrl.eliminarPlan);
 router.get('/hallazgos', verificarToken, audCtrl.listarHallazgos);
 router.post('/hallazgos', verificarToken, verificarRol(['admin', 'auditor']), audCtrl.crearHallazgo);
-router.patch('/hallazgos/:id', verificarToken, audCtrl.actualizarHallazgo);
+router.patch('/hallazgos/:id', verificarToken, verificarRol(['admin', 'auditor']), audCtrl.actualizarHallazgo);
 router.delete('/hallazgos/:id', verificarToken, verificarRol(['admin', 'auditor']), audCtrl.eliminarHallazgo);
-router.patch('/hallazgos/:id/cerrar', verificarToken, audCtrl.cerrarHallazgo);
+router.patch('/hallazgos/:id/cerrar', verificarToken, verificarRol(['admin', 'auditor']), audCtrl.cerrarHallazgo);
 
 // CAPA
 router.get('/capas/reporte', verificarToken, capaCtrl.reporteCapa);
@@ -98,7 +98,7 @@ router.get('/capas', verificarToken, capaCtrl.listarCapas);
 router.get('/capas/:id', verificarToken, capaCtrl.obtenerCapa);
 router.post('/capas', verificarToken, verificarRol(['admin', 'gestor_calidad', 'auditor']), capaCtrl.crearCapa);
 router.put('/capas/:id', verificarToken, verificarRol(['admin', 'gestor_calidad']), capaCtrl.actualizarCapa);
-router.patch('/capas/:id/estado', verificarToken, capaCtrl.actualizarEstadoCapa);
+router.patch('/capas/:id/estado', verificarToken, verificarRol(['admin', 'gestor_calidad', 'auditor']), capaCtrl.actualizarEstadoCapa);
 router.delete('/capas/:id', verificarToken, verificarRol(['admin', 'gestor_calidad']), capaCtrl.eliminarCapa);
 router.patch('/capas/:id/cerrar', verificarToken, verificarRol(['admin', 'gestor_calidad', 'auditor']), capaCtrl.cerrarCapa);
 
@@ -109,7 +109,7 @@ router.post('/riesgos', verificarToken, verificarRol(['admin', 'gestor_calidad']
 router.put('/riesgos/:id', verificarToken, verificarRol(['admin', 'gestor_calidad']), riesgoCtrl.actualizarRiesgo);
 router.delete('/riesgos/:id', verificarToken, verificarRol(['admin', 'gestor_calidad']), riesgoCtrl.eliminarRiesgo);
 router.get('/riesgos/:riesgo_id/planes-mitigacion', verificarToken, riesgoCtrl.listarPlanesMitigacion);
-router.post('/planes-mitigacion', verificarToken, riesgoCtrl.crearPlanMitigacion);
+router.post('/planes-mitigacion', verificarToken, verificarRol(['admin', 'gestor_calidad']), riesgoCtrl.crearPlanMitigacion);
 router.put('/planes-mitigacion/:id', verificarToken, verificarRol(['admin', 'gestor_calidad']), riesgoCtrl.actualizarPlanMitigacion);
 router.delete('/planes-mitigacion/:id', verificarToken, verificarRol(['admin', 'gestor_calidad']), riesgoCtrl.eliminarPlanMitigacion);
 

@@ -1,0 +1,78 @@
+- Implementar crud de periodo y llamar a la lista de periodos en los cruds que lo necesiten
+
+6. Módulo 3: Acreditación y Autoevaluación (falta completar, descomponer en factores/criterios y mejorar autoevaluación)
+Propósito: Monitorear el cumplimiento de estándares nacionales e internacionales (ISO 21001, SUNEDU).
+6.1 Registrar un Estándar
+1.	Vaya a la pestaña "Estándares"
+2.	Clic en "Nuevo Estándar"
+3.	Ingrese: código, nombre, organización emisora, vigencia
+6.2 Descomponer en Factores/Criterios
+•	Dentro de un estándar, agregue factores de evaluación con su peso porcentual
+•	Ejemplo: Factor 1 "Misión y Visión" - Peso 15%
+6.3 Ejecutar Autoevaluación
+1.	Pestaña "Autoevaluaciones"
+2.	Clic en "Nueva Autoevaluación"
+3.	Seleccione el estándar y el periodo académico (ej. 2026-I)
+4.	Evalúe cada factor:
+•	Cumplimiento: Cumple / Cumple Parcial / No Cumple / No Aplica
+•	Puntaje: Valor numérico
+•	Evidencias: Adjunte descripción o enlaces
+5.	El sistema calcula automáticamente el puntaje total
+6.4 Reporte PDF
+•	Descargue el informe de autoevaluación con puntajes por factor y estado general
+
+9. Módulo 6: Gestión de Riesgos (falta plan de mitigacion)
+Propósito: Identificar, evaluar y mitigar riesgos operativos y estratégicos.
+9.1 Registrar un Riesgo
+1.	En "Riesgos", clic en "Nuevo Riesgo"
+2.	Complete:
+•	Código: R-2026-001
+•	Nombre: Descripción corta
+•	Categoría: Estratégico, Operativo, Académico, Financiero, Legal, Tecnológico, Reputacional
+•	Probabilidad: 1 (muy baja) a 5 (muy alta)
+•	Impacto: 1 (mínimo) a 5 (crítico)
+3.	El sistema calcula automáticamente el nivel de riesgo:
+•	1-4: Bajo (verde)
+•	5-9: Medio (amarillo)
+•	10-14: Alto (naranja)
+•	15-25: Crítico (rojo)
+9.2 Plan de Mitigación
+•	Clic sobre un riesgo para agregar Planes de Mitigación
+•	Defina acciones, responsable, fecha de inicio y fin
+•	Estados: planificado → en_ejecucion → completado
+9.3 Visualización
+•	La matriz de riesgos muestra semáforos visuales por cada registro
+•	Los puntos de probabilidad e impacto se grafican con barras de color
+10. Módulo 7: Indicadores de Gestión (Dashboards) (que se pueda seleccionar periodo en el crud)
+Propósito: Medir y visualizar el desempeño de procesos mediante métricas cuantitativas.
+10.1 Crear un Indicador
+1.	En "Indicadores", clic en "Nuevo Indicador"
+2.	Defina:
+•	Código: IND-01
+•	Nombre: Ej. "Tasa de satisfacción estudiantil"
+•	Tipo: Eficacia / Eficiencia / Impacto / Satisfacción
+•	Fórmula: Descripción del cálculo
+•	Meta: Valor objetivo (ej. 85%)
+•	Frecuencia: Diaria, semanal, mensual, trimestral, anual
+10.2 Registrar Mediciones
+1.	Clic sobre el indicador deseado
+2.	En el panel inferior, registre la medición del periodo:
+•	Valor real: Lo que se midió
+•	Valor esperado: Meta del periodo
+3.	El sistema calcula automáticamente el % de cumplimiento
+10.3 Análisis Visual
+•	Gráfico de barras comparando Valor Real vs % Cumplimiento
+•	Línea de referencia roja indicando la Meta
+•	Histórico por periodos académicos
+10.4 Reporte PDF
+•	Descargue el consolidado de indicadores con sus metas y estados
+12. Roles y Permisos
+Table
+Rol	Permisos Principales
+Admin	Acceso total a todos los módulos, gestión de usuarios, configuración del sistema
+Gestor de Calidad	CRUD en documentos, procesos, acreditación, auditorías, CAPA, riesgos, indicadores, encuestas
+Auditor	Crear planes de auditoría, registrar hallazgos, verificar CAPAs, leer documentos
+Docente	Responder encuestas, consultar documentos aprobados, ver procesos de su área
+Estudiante	Responder encuestas publicadas, consultar documentos institucionales
+Egresado	Responder encuestas de seguimiento, acceso limitado de lectura
+Invitado	Solo lectura de documentos públicos y políticas institucionales (desde la landing, no tiene usuario)
