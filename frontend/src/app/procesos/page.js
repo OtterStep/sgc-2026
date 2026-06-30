@@ -38,42 +38,21 @@ export default function ProcesosPage() {
 
   const cargarDatos = async () => {
     try {
-      const [mp, pr, us, mapa, vers] = await Promise.all([
+      const [mp, pr, us, mapa, vers] = await Promise.allSettled([
         axios.get('/api/v1/macroprocesos'),
         axios.get('/api/v1/procesos'),
         axios.get('/api/v1/usuarios'),
         axios.get('/api/v1/mapa/actual'),
         axios.get('/api/v1/mapa/versiones'),
       ]);
-      setMacroprocesos(mp.data);
-      setProcesos(pr.data);
-      setUsuarios(us.data);
-      setMapaActual(mapa.data);
-      setVersiones(vers.data);
+
+      if (mp.status === 'fulfilled') setMacroprocesos(mp.value.data);
+      if (pr.status === 'fulfilled') setProcesos(pr.value.data);
+      if (us.status === 'fulfilled') setUsuarios(us.value.data);
+      if (mapa.status === 'fulfilled') setMapaActual(mapa.value.data);
+      if (vers.status === 'fulfilled') setVersiones(vers.value.data);
     } catch (err) {
-      const demoMacros = [
-        { id: '1', codigo: 'MP-01', nombre: 'Direccionamiento Estratégico', tipo: 'estrategico', clasificacion_mapa: 'estrategico', estado: true, responsable: { nombres: 'Juan', apellidos: 'Pérez' } },
-        { id: '2', codigo: 'MP-02', nombre: 'Formación Profesional', tipo: 'misional', clasificacion_mapa: 'misional', estado: true, responsable: { nombres: 'María', apellidos: 'Gómez' } },
-        { id: '3', codigo: 'MP-03', nombre: 'Gestión Administrativa', tipo: 'apoyo', clasificacion_mapa: 'soporte', estado: true, responsable: { nombres: 'Carlos', apellidos: 'López' } },
-        { id: '4', codigo: 'MP-04', nombre: 'Investigación y Desarrollo', tipo: 'misional', clasificacion_mapa: 'misional', estado: true, responsable: { nombres: 'Ana', apellidos: 'Martínez' } },
-      ];
-      setMacroprocesos(demoMacros);
-      setProcesos([
-        { id: '1', codigo: 'P-01', nombre: 'Planificación Curricular', macroproceso_id: '2', estado: 'activo', macroproceso: { nombre: 'Formación Profesional' }, responsable: { nombres: 'Juan', apellidos: 'Pérez' } },
-        { id: '2', codigo: 'P-02', nombre: 'Gestión de Docencia', macroproceso_id: '2', estado: 'activo', macroproceso: { nombre: 'Formación Profesional' }, responsable: { nombres: 'María', apellidos: 'Gómez' } },
-      ]);
-      setMapaActual({
-        version: 1,
-        datos: {
-          estrategicos: [demoMacros[0]],
-          misionales: [demoMacros[1], demoMacros[3]],
-          soporte: [demoMacros[2]],
-          sin_clasificar: [],
-        },
-      });
-      setVersiones([
-        { id: 'v1', numero_version: 1, cambios_descripcion: 'Versión inicial del mapa de procesos', activa: true, creado_en: new Date().toISOString(), creadoPor: { nombres: 'Admin', apellidos: 'SGC' } },
-      ]);
+      console.error('Error cargando datos:', err);
     }
   };
 
