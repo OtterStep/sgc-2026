@@ -49,6 +49,7 @@ export const Documento = sequelize.define('documentos', {
       'borrador',
       'en_revision',
       'aprobado',
+      'obsoleto',
       'archivado'
     ),
     defaultValue: 'borrador'

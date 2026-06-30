@@ -22,6 +22,8 @@ import {
   TipoDocumento,
   Documento,
   VersionDocumento,
+  AprobacionDocumento,
+  VersionMapa,
   Encuesta,
   PreguntaEncuesta,
   RespuestaEncuesta,
@@ -388,21 +390,80 @@ const seed = async () => {
     // 20. VERSIONES DOCUMENTO
     // ==========================================
     const versionData = [
-      { documento_id: docMap['POL-001'].id, numero_version: 1, cambios_descripcion: 'Versión inicial de la política de calidad', contenido: '# Política de Calidad\nVersión 1', estado: 'aprobado', creado_por: admin.id },
-      { documento_id: docMap['POL-001'].id, numero_version: 2, cambios_descripcion: 'Actualización de alcance y objetivos', contenido: '# Política de Calidad\nVersión 2', estado: 'aprobado', creado_por: admin.id },
-      { documento_id: docMap['POL-001'].id, numero_version: 3, cambios_descripcion: 'Revisión anual del comité de calidad', contenido: '# Política de Calidad\nVersión actual', estado: 'aprobado', creado_por: gestor.id },
-      { documento_id: docMap['MAN-001'].id, numero_version: 1, cambios_descripcion: 'Manual inicial', contenido: '# Manual v1', estado: 'aprobado', creado_por: gestor.id },
-      { documento_id: docMap['MAN-001'].id, numero_version: 2, cambios_descripcion: 'Actualización de procesos según nuevo PEI', contenido: '# Manual v2', estado: 'aprobado', creado_por: gestor.id },
-      { documento_id: docMap['PRO-001'].id, numero_version: 1, cambios_descripcion: 'Versión inicial del procedimiento', contenido: '# Procedimiento v1', estado: 'aprobado', creado_por: auditor.id },
-      { documento_id: docMap['POL-002'].id, numero_version: 1, cambios_descripcion: 'Versión inicial', contenido: '# Política Investigación v1', estado: 'en_revision', creado_por: docente.id },
+      { docCodigo: 'POL-001', numero_version: 1, cambios_descripcion: 'Versión inicial de la política de calidad', contenido: '# Política de Calidad\nVersión 1', estado: 'aprobado', creado_por: admin.id },
+      { docCodigo: 'POL-001', numero_version: 2, cambios_descripcion: 'Actualización de alcance y objetivos', contenido: '# Política de Calidad\nVersión 2', estado: 'aprobado', creado_por: admin.id },
+      { docCodigo: 'POL-001', numero_version: 3, cambios_descripcion: 'Revisión anual del comité de calidad', contenido: '# Política de Calidad\nVersión actual', estado: 'aprobado', creado_por: gestor.id },
+      { docCodigo: 'MAN-001', numero_version: 1, cambios_descripcion: 'Manual inicial', contenido: '# Manual v1', estado: 'aprobado', creado_por: gestor.id },
+      { docCodigo: 'MAN-001', numero_version: 2, cambios_descripcion: 'Actualización de procesos según nuevo PEI', contenido: '# Manual v2', estado: 'aprobado', creado_por: gestor.id },
+      { docCodigo: 'PRO-001', numero_version: 1, cambios_descripcion: 'Versión inicial del procedimiento', contenido: '# Procedimiento v1', estado: 'aprobado', creado_por: auditor.id },
+      { docCodigo: 'POL-002', numero_version: 1, cambios_descripcion: 'Versión inicial', contenido: '# Política Investigación v1', estado: 'en_revision', creado_por: docente.id },
     ];
+    const versionMap = {};
     for (const d of versionData) {
-      await VersionDocumento.findOrCreate({ where: { documento_id: d.documento_id, numero_version: d.numero_version }, defaults: d });
+      const [v] = await VersionDocumento.findOrCreate({
+        where: { documento_id: docMap[d.docCodigo].id, numero_version: d.numero_version },
+        defaults: { documento_id: docMap[d.docCodigo].id, numero_version: d.numero_version, cambios_descripcion: d.cambios_descripcion, contenido: d.contenido, estado: d.estado, creado_por: d.creado_por },
+      });
+      versionMap[`${d.docCodigo}-v${d.numero_version}`] = v;
     }
     console.log('✅ Versiones de documentos creadas');
 
     // ==========================================
-    // 21. ENCUESTAS
+    // 21. APROBACIONES DOCUMENTO
+    // ==========================================
+    const aprobData = [
+      { documento_id: docMap['POL-001'].id, version_id: versionMap['POL-001-v1']?.id, aprobador_id: admin.id, accion: 'aprobado', comentario: 'Versión inicial aprobada' },
+      { documento_id: docMap['POL-001'].id, version_id: versionMap['POL-001-v2']?.id, aprobador_id: admin.id, accion: 'aprobado', comentario: 'Actualización de alcance aprobada' },
+      { documento_id: docMap['POL-001'].id, version_id: versionMap['POL-001-v3']?.id, aprobador_id: gestor.id, accion: 'aprobado', comentario: 'Revisión anual aprobada' },
+      { documento_id: docMap['MAN-001'].id, version_id: versionMap['MAN-001-v1']?.id, aprobador_id: gestor.id, accion: 'aprobado', comentario: 'Versión inicial del manual' },
+      { documento_id: docMap['MAN-001'].id, version_id: versionMap['MAN-001-v2']?.id, aprobador_id: gestor.id, accion: 'aprobado', comentario: 'Actualización por nuevo PEI aprobada' },
+      { documento_id: docMap['PRO-001'].id, version_id: versionMap['PRO-001-v1']?.id, aprobador_id: auditor.id, accion: 'aprobado', comentario: 'Procedimiento aprobado' },
+      { documento_id: docMap['FOR-001'].id, version_id: null, aprobador_id: gestor.id, accion: 'aprobado', comentario: 'Formato estándar aprobado' },
+    ];
+    for (const d of aprobData) {
+      await AprobacionDocumento.findOrCreate({
+        where: { documento_id: d.documento_id, aprobador_id: d.aprobador_id, accion: d.accion },
+        defaults: d,
+      });
+    }
+    console.log('✅ Aprobaciones de documentos creadas');
+
+    // ==========================================
+    // 22. VERSION MAPA DE PROCESOS
+    // ==========================================
+    const macroCodigoFromId = {};
+    for (const [codigo, macro] of Object.entries(macroMap)) {
+      macroCodigoFromId[macro.id] = codigo;
+    }
+    const versionMapData = [
+      {
+        numero_version: 1,
+        cambios_descripcion: 'Versión inicial del mapa de procesos',
+        datos: {
+          macroprocesos: macrosData.map(m => ({ codigo: m.codigo, nombre: m.nombre, tipo: m.tipo, clasificacion_mapa: m.clasificacion_mapa })),
+          procesos: procesosData.map(p => ({ codigo: p.codigo, nombre: p.nombre, macroproceso_codigo: macroCodigoFromId[p.macroproceso_id] || '' })),
+        },
+        activa: false,
+        creado_por: admin.id,
+      },
+      {
+        numero_version: 2,
+        cambios_descripcion: 'Actualización con macroprocesos misionales y de soporte',
+        datos: {
+          macroprocesos: macrosData.map(m => ({ codigo: m.codigo, nombre: m.nombre, tipo: m.tipo, clasificacion_mapa: m.clasificacion_mapa, descripcion: m.descripcion })),
+          procesos: procesosData.map(p => ({ codigo: p.codigo, nombre: p.nombre, objetivo: p.objetivo, macroproceso_codigo: macroCodigoFromId[p.macroproceso_id] || '' })),
+        },
+        activa: true,
+        creado_por: gestor.id,
+      },
+    ];
+    for (const d of versionMapData) {
+      await VersionMapa.findOrCreate({ where: { numero_version: d.numero_version }, defaults: d });
+    }
+    console.log('✅ Versiones de mapa de procesos creadas');
+
+    // ==========================================
+    // 23. ENCUESTAS
     // ==========================================
     const encData = [
       { codigo: 'ENC-001', titulo: 'Encuesta de Satisfacción Estudiantil 2025-I', descripcion: 'Mide la satisfacción de los estudiantes con la calidad educativa', dirigido_a: 'estudiantes', fecha_inicio: '2025-04-01', fecha_fin: '2025-05-15', anonima: false, estado: 'publicada', creado_por: gestor.id },
@@ -418,7 +479,7 @@ const seed = async () => {
     console.log('✅ Encuestas creadas');
 
     // ==========================================
-    // 22. PREGUNTAS ENCUESTA
+    // 24. PREGUNTAS ENCUESTA
     // ==========================================
     const pregData = [
       // ENC-001 (11 preguntas — no anónima)
@@ -473,7 +534,7 @@ const seed = async () => {
     console.log('✅ Preguntas de encuesta creadas');
 
     // ==========================================
-    // 23. USUARIOS DE PRUEBA (estudiantes y egresados)
+    // 25. USUARIOS DE PRUEBA (estudiantes y egresados)
     // ==========================================
     const testUsuariosData = [
       { codigo: 'EST-001', nombres: 'Carlos', apellidos: 'García López', correo: 'cgarcia@unitru.edu.pe', rol: 'estudiante', facultad: 'Ingeniería', escuela: 'Sistemas', activo: true },
@@ -501,7 +562,7 @@ const seed = async () => {
     console.log('✅ Usuarios de prueba creados');
 
     // ==========================================
-    // 24. RESPUESTAS ENCUESTA — Satisfacción Estudiantil (ENC-001, no anónima)
+    // 26. RESPUESTAS ENCUESTA — Satisfacción Estudiantil (ENC-001, no anónima)
     // ==========================================
     const pregEnc1 = await PreguntaEncuesta.findAll({ where: { encuesta_id: encMap['ENC-001'].id }, order: [['orden', 'ASC']] });
     const estudiantesList = Object.values(testUsuarios).filter(u => u.rol === 'estudiante');
@@ -583,7 +644,7 @@ const seed = async () => {
     console.log('✅ Respuestas ENC-001 creadas');
 
     // ==========================================
-    // 25. RESPUESTAS ENCUESTA — Egresados (ENC-003, no anónima)
+    // 27. RESPUESTAS ENCUESTA — Egresados (ENC-003, no anónima)
     // ==========================================
     const pregEnc3 = await PreguntaEncuesta.findAll({ where: { encuesta_id: encMap['ENC-003'].id }, order: [['orden', 'ASC']] });
     const egresadosList = Object.values(testUsuarios).filter(u => u.rol === 'egresado');
@@ -673,7 +734,7 @@ const seed = async () => {
     console.log('✅ Respuestas ENC-003 creadas');
 
     // ==========================================
-    // 26. RESPUESTAS ENCUESTA — Docencia (ENC-002, anónima)
+    // 28. RESPUESTAS ENCUESTA — Docencia (ENC-002, anónima)
     // ==========================================
     // Limpiar respuestas anónimas previas para evitar duplicados al re-ejecutar
     await RespuestaEncuesta.destroy({ where: { encuesta_id: encMap['ENC-002'].id, usuario_id: null } });
@@ -735,7 +796,7 @@ const seed = async () => {
     console.log('✅ Respuestas ENC-002 creadas');
 
     // ==========================================
-    // 27. RESPUESTAS ENCUESTA — Clima Laboral (ENC-004, anónima)
+    // 29. RESPUESTAS ENCUESTA — Clima Laboral (ENC-004, anónima)
     // ==========================================
     // Limpiar respuestas anónimas previas para evitar duplicados al re-ejecutar
     await RespuestaEncuesta.destroy({ where: { encuesta_id: encMap['ENC-004'].id, usuario_id: null } });
