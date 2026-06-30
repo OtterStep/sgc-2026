@@ -280,7 +280,10 @@ export const crearNuevaVersionMapa = async (req, res) => {
 
     const macroprocesos = await Macroproceso.findAll({
       where: { estado: true },
-      include: [{ model: Usuario, as: 'responsable', attributes: ['nombres', 'apellidos'] }],
+      include: [
+        { model: Usuario, as: 'responsable', attributes: ['nombres', 'apellidos'] },
+        { model: Proceso, as: 'procesos', attributes: ['id', 'codigo', 'nombre', 'objetivo', 'estado'] },
+      ],
       order: [['codigo', 'ASC']],
       transaction: t,
     });

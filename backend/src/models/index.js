@@ -430,6 +430,7 @@ export const ParametroSistema = sequelize.define('parametros_sistema', {
 Macroproceso.belongsTo(Usuario, { as: 'responsable', foreignKey: 'responsable_id' });
 Proceso.belongsTo(Macroproceso, { foreignKey: 'macroproceso_id', as: 'macroproceso' });
 Proceso.belongsTo(Usuario, { as: 'responsable', foreignKey: 'responsable_id' });
+Macroproceso.hasMany(Proceso, { foreignKey: 'macroproceso_id', as: 'procesos' });
 Proceso.hasMany(ActividadProceso, { foreignKey: 'proceso_id', as: 'actividades' });
 Documento.belongsTo(Proceso, { foreignKey: 'proceso_id', as: 'proceso' });
 Documento.belongsTo(TipoDocumento, { foreignKey: 'tipo_documento_id', as: 'tipo' });

@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { GitBranch, Tag, User, GraduationCap } from 'lucide-react';
+import { GitBranch, Tag, User, GraduationCap, ChevronRight, ListTree } from 'lucide-react';
 
 const CLASIFICACIONES = [
   { key: 'estrategicos', label: 'Estratégicos', color: 'border-l-blue-500 bg-blue-50', headerBg: 'bg-blue-50', badgeBg: 'bg-blue-100 text-blue-700', border: 'border-blue-200' },
@@ -100,7 +100,7 @@ export default function PublicProcessMap() {
                     {items.map((m) => (
                       <div
                         key={m.id}
-                        className="px-5 py-3.5 hover:bg-[#F7F4EC]/50 transition-colors"
+                        className="px-5 py-3 hover:bg-[#F7F4EC]/50 transition-colors"
                       >
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-mono font-semibold text-[#5B6472] bg-[#F7F4EC] px-2 py-0.5 rounded">
@@ -115,11 +115,22 @@ export default function PublicProcessMap() {
                             {m.descripcion}
                           </p>
                         )}
-                        {m.responsable && (
-                          <div className="flex items-center gap-1 mt-1.5 text-xs text-[#9CA3AF]">
-                            <User size={11} />
-                            {m.responsable.nombres} {m.responsable.apellidos}
-                          </div>
+                        {m.procesos?.length > 0 && (
+                          <details className="mt-2 group">
+                            <summary className="flex items-center gap-1 text-xs text-[#5B6472] cursor-pointer hover:text-[#0B2545] list-none">
+                              <ListTree size={12} />
+                              <span>{m.procesos.length} proceso{m.procesos.length !== 1 ? 's' : ''}</span>
+                            </summary>
+                            <ul className="mt-1.5 ml-1 space-y-0.5">
+                              {m.procesos.map((p) => (
+                                <li key={p.id} className="flex items-start gap-1.5 text-xs text-[#5B6472] py-0.5">
+                                  <ChevronRight size={10} className="mt-0.5 shrink-0 text-[#C9A227]" />
+                                  <span className="font-mono text-[#9CA3AF]">{p.codigo}</span>
+                                  <span className="text-[#1F2430]">{p.nombre}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </details>
                         )}
                       </div>
                     ))}
