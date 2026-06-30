@@ -405,9 +405,10 @@ const seed = async () => {
     // 21. ENCUESTAS
     // ==========================================
     const encData = [
-      { codigo: 'ENC-001', titulo: 'Encuesta de Satisfacción Estudiantil 2025-I', descripcion: 'Mide la satisfacción de los estudiantes con la calidad educativa', dirigido_a: 'estudiantes', fecha_inicio: '2025-04-01', fecha_fin: '2025-05-15', anonima: true, estado: 'publicada', creado_por: gestor.id },
-      { codigo: 'ENC-002', titulo: 'Evaluación Docente 2025-I', descripcion: 'Evaluación del desempeño docente por parte de los estudiantes', dirigido_a: 'estudiantes', fecha_inicio: '2025-06-01', fecha_fin: '2025-07-15', anonima: true, estado: 'borrador', creado_por: gestor.id },
-      { codigo: 'ENC-003', titulo: 'Encuesta a Egresados 2025', descripcion: 'Seguimiento a egresados sobre inserción laboral', dirigido_a: 'egresados', fecha_inicio: '2025-03-01', fecha_fin: '2025-06-30', anonima: true, estado: 'publicada', creado_por: gestor.id },
+      { codigo: 'ENC-001', titulo: 'Encuesta de Satisfacción Estudiantil 2025-I', descripcion: 'Mide la satisfacción de los estudiantes con la calidad educativa', dirigido_a: 'estudiantes', fecha_inicio: '2025-04-01', fecha_fin: '2025-05-15', anonima: false, estado: 'publicada', creado_por: gestor.id },
+      { codigo: 'ENC-002', titulo: 'Evaluación Docente 2025-I', descripcion: 'Evaluación del desempeño docente por parte de los estudiantes', dirigido_a: 'estudiantes', fecha_inicio: '2025-06-01', fecha_fin: '2025-07-15', anonima: true, estado: 'publicada', creado_por: gestor.id },
+      { codigo: 'ENC-003', titulo: 'Encuesta a Egresados 2025', descripcion: 'Seguimiento a egresados sobre inserción laboral', dirigido_a: 'egresados', fecha_inicio: '2025-03-01', fecha_fin: '2025-06-30', anonima: false, estado: 'publicada', creado_por: gestor.id },
+      { codigo: 'ENC-004', titulo: 'Encuesta de Clima Laboral 2025', descripcion: 'Mide la satisfacción del personal administrativo con su entorno laboral', dirigido_a: 'administrativos', fecha_inicio: '2025-05-01', fecha_fin: '2025-07-31', anonima: true, estado: 'publicada', creado_por: gestor.id },
     ];
     const encMap = {};
     for (const d of encData) {
@@ -420,21 +421,51 @@ const seed = async () => {
     // 22. PREGUNTAS ENCUESTA
     // ==========================================
     const pregData = [
+      // ENC-001 (11 preguntas — no anónima)
       { encuesta_id: encMap['ENC-001'].id, texto: '¿Cómo califica la calidad de la enseñanza recibida?', tipo: 'likert_5', orden: 1, obligatoria: true },
       { encuesta_id: encMap['ENC-001'].id, texto: '¿Los docentes cumplen con el sílabo programado?', tipo: 'likert_5', orden: 2, obligatoria: true },
       { encuesta_id: encMap['ENC-001'].id, texto: '¿Cómo califica la infraestructura y equipamiento?', tipo: 'likert_5', orden: 3, obligatoria: true },
       { encuesta_id: encMap['ENC-001'].id, texto: '¿Recomendaría su programa de estudios?', tipo: 'likert_5', orden: 4, obligatoria: true },
       { encuesta_id: encMap['ENC-001'].id, texto: '¿Qué mejoras sugiere para el programa?', tipo: 'abierta', orden: 5, obligatoria: false },
+      { encuesta_id: encMap['ENC-001'].id, texto: 'Los laboratorios y equipos están actualizados', tipo: 'likert_5', orden: 6, obligatoria: true },
+      { encuesta_id: encMap['ENC-001'].id, texto: 'Los horarios de clase son adecuados', tipo: 'likert_5', orden: 7, obligatoria: true },
+      { encuesta_id: encMap['ENC-001'].id, texto: 'La biblioteca cuenta con material suficiente', tipo: 'likert_5', orden: 8, obligatoria: true },
+      { encuesta_id: encMap['ENC-001'].id, texto: '¿Recomendarías la UNT a un familiar?', tipo: 'si_no', orden: 9, obligatoria: true },
+      { encuesta_id: encMap['ENC-001'].id, texto: 'Horas semanales que dedicas al estudio', tipo: 'numerica', orden: 10, obligatoria: true },
+      { encuesta_id: encMap['ENC-001'].id, texto: 'Sugerencias para mejorar la infraestructura', tipo: 'abierta', orden: 11, obligatoria: false },
+      // ENC-002 (10 preguntas — anónima)
       { encuesta_id: encMap['ENC-002'].id, texto: 'El docente domina los contenidos de la asignatura', tipo: 'likert_5', orden: 1, obligatoria: true },
       { encuesta_id: encMap['ENC-002'].id, texto: 'La metodología de enseñanza es adecuada', tipo: 'likert_5', orden: 2, obligatoria: true },
       { encuesta_id: encMap['ENC-002'].id, texto: 'El docente resuelve dudas y brinda retroalimentación', tipo: 'likert_5', orden: 3, obligatoria: true },
       { encuesta_id: encMap['ENC-002'].id, texto: 'La evaluación está alineada con lo enseñado', tipo: 'likert_5', orden: 4, obligatoria: true },
-      { encuesta_id: encMap['ENC-002'].id, texto: 'Comentarios adicionales sobre el docente', tipo: 'abierta', orden: 5, obligatoria: false },
+      { encuesta_id: encMap['ENC-002'].id, texto: 'El docente asiste puntualmente a clases', tipo: 'likert_5', orden: 5, obligatoria: true },
+      { encuesta_id: encMap['ENC-002'].id, texto: 'El material de apoyo utilizado es útil', tipo: 'likert_5', orden: 6, obligatoria: true },
+      { encuesta_id: encMap['ENC-002'].id, texto: '¿Recomendarías a este docente a otros estudiantes?', tipo: 'si_no', orden: 7, obligatoria: true },
+      { encuesta_id: encMap['ENC-002'].id, texto: 'Califica al docente del 1 al 10', tipo: 'numerica', orden: 8, obligatoria: true },
+      { encuesta_id: encMap['ENC-002'].id, texto: '¿Crees que el curso aporta significativamente a tu formación?', tipo: 'si_no', orden: 9, obligatoria: true },
+      { encuesta_id: encMap['ENC-002'].id, texto: 'Comentarios adicionales sobre el docente', tipo: 'abierta', orden: 10, obligatoria: false },
+      // ENC-003 (10 preguntas — no anónima)
       { encuesta_id: encMap['ENC-003'].id, texto: '¿Está laborando actualmente en su campo profesional?', tipo: 'si_no', orden: 1, obligatoria: true },
       { encuesta_id: encMap['ENC-003'].id, texto: '¿Cuánto tiempo le tomó encontrar empleo después de egresar?', tipo: 'multiple', orden: 2, obligatoria: true },
       { encuesta_id: encMap['ENC-003'].id, texto: '¿Los conocimientos adquiridos en la universidad son útiles en su trabajo?', tipo: 'likert_5', orden: 3, obligatoria: true },
       { encuesta_id: encMap['ENC-003'].id, texto: '¿Estaría dispuesto a realizar cursos de actualización?', tipo: 'si_no', orden: 4, obligatoria: true },
       { encuesta_id: encMap['ENC-003'].id, texto: 'Sugerencias para mejorar la formación profesional', tipo: 'abierta', orden: 5, obligatoria: false },
+      { encuesta_id: encMap['ENC-003'].id, texto: 'La formación recibida en la UNT fue de calidad', tipo: 'likert_5', orden: 6, obligatoria: true },
+      { encuesta_id: encMap['ENC-003'].id, texto: 'La universidad te brindó suficientes prácticas preprofesionales', tipo: 'likert_5', orden: 7, obligatoria: true },
+      { encuesta_id: encMap['ENC-003'].id, texto: '¿Estás satisfecho con la carrera que elegiste?', tipo: 'si_no', orden: 8, obligatoria: true },
+      { encuesta_id: encMap['ENC-003'].id, texto: 'Años que tardaste en egresar desde el ingreso', tipo: 'numerica', orden: 9, obligatoria: true },
+      { encuesta_id: encMap['ENC-003'].id, texto: '¿Qué recomendarías mejorar a la universidad?', tipo: 'abierta', orden: 10, obligatoria: false },
+      // ENC-004 (10 preguntas — anónima)
+      { encuesta_id: encMap['ENC-004'].id, texto: 'El ambiente laboral en tu área es adecuado', tipo: 'likert_5', orden: 1, obligatoria: true },
+      { encuesta_id: encMap['ENC-004'].id, texto: 'La comunicación interna en tu unidad es fluida', tipo: 'likert_5', orden: 2, obligatoria: true },
+      { encuesta_id: encMap['ENC-004'].id, texto: 'Recibes capacitación suficiente para tu labor', tipo: 'likert_5', orden: 3, obligatoria: true },
+      { encuesta_id: encMap['ENC-004'].id, texto: 'Los procesos administrativos son eficientes', tipo: 'likert_5', orden: 4, obligatoria: true },
+      { encuesta_id: encMap['ENC-004'].id, texto: 'Tienes los recursos necesarios para realizar tu trabajo', tipo: 'likert_5', orden: 5, obligatoria: true },
+      { encuesta_id: encMap['ENC-004'].id, texto: '¿Recomendarías trabajar en la UNT?', tipo: 'si_no', orden: 6, obligatoria: true },
+      { encuesta_id: encMap['ENC-004'].id, texto: '¿Participas activamente en las decisiones de tu área?', tipo: 'si_no', orden: 7, obligatoria: true },
+      { encuesta_id: encMap['ENC-004'].id, texto: 'Horas semanales que dedicas a tu labor', tipo: 'numerica', orden: 8, obligatoria: true },
+      { encuesta_id: encMap['ENC-004'].id, texto: 'Años que llevas trabajando en la UNT', tipo: 'numerica', orden: 9, obligatoria: false },
+      { encuesta_id: encMap['ENC-004'].id, texto: 'Sugerencias para mejorar tu área de trabajo', tipo: 'abierta', orden: 10, obligatoria: false },
     ];
     for (const d of pregData) {
       await PreguntaEncuesta.findOrCreate({ where: { encuesta_id: d.encuesta_id, texto: d.texto }, defaults: d });
@@ -453,6 +484,14 @@ const seed = async () => {
       { codigo: 'EST-006', nombres: 'Rosa', apellidos: 'Huamán Quispe', correo: 'rhuaman@unitru.edu.pe', rol: 'egresado', facultad: 'Ingeniería', escuela: 'Sistemas', activo: true },
       { codigo: 'EST-007', nombres: 'José', apellidos: 'Vega Castillo', correo: 'jvega@unitru.edu.pe', rol: 'egresado', facultad: 'Ciencias', escuela: 'Contabilidad', activo: true },
       { codigo: 'EST-008', nombres: 'Lucía', apellidos: 'Flores Paredes', correo: 'lflores@unitru.edu.pe', rol: 'egresado', facultad: 'Ingeniería', escuela: 'Industrial', activo: true },
+      { codigo: 'EST-009', nombres: 'Diana', apellidos: 'Rojas Méndez', correo: 'drojas@unitru.edu.pe', rol: 'estudiante', facultad: 'Ingeniería', escuela: 'Sistemas', activo: true },
+      { codigo: 'EST-010', nombres: 'Jorge', apellidos: 'Salinas Torres', correo: 'jsalinas@unitru.edu.pe', rol: 'estudiante', facultad: 'Ciencias', escuela: 'Matemáticas', activo: true },
+      { codigo: 'EST-011', nombres: 'Sofía', apellidos: 'Cruz Ramos', correo: 'scruz@unitru.edu.pe', rol: 'estudiante', facultad: 'Ciencias Sociales', escuela: 'Derecho', activo: true },
+      { codigo: 'EST-012', nombres: 'Miguel', apellidos: 'Ángeles Paredes', correo: 'mangeles@unitru.edu.pe', rol: 'egresado', facultad: 'Ciencias Sociales', escuela: 'Derecho', activo: true },
+      { codigo: 'EST-013', nombres: 'Carmen', apellidos: 'Vilca Mendoza', correo: 'cvilca@unitru.edu.pe', rol: 'egresado', facultad: 'Ingeniería', escuela: 'Civil', activo: true },
+      { codigo: 'INV-001', nombres: 'Pedro', apellidos: 'Huamán Ríos', correo: 'phuaman@unitru.edu.pe', rol: 'administrativo', facultad: 'Ingeniería', escuela: 'Industrial', activo: true },
+      { codigo: 'INV-002', nombres: 'Rosa', apellidos: 'Mamani Quispe', correo: 'rmamani@unitru.edu.pe', rol: 'administrativo', facultad: 'Ciencias Sociales', escuela: 'Derecho', activo: true },
+      { codigo: 'INV-003', nombres: 'Jorge', apellidos: 'Linares Campos', correo: 'jlinares@unitru.edu.pe', rol: 'administrativo', facultad: 'Ingeniería', escuela: 'Sistemas', activo: true },
     ];
     const testUsuarios = {};
     for (const d of testUsuariosData) {
@@ -462,31 +501,81 @@ const seed = async () => {
     console.log('✅ Usuarios de prueba creados');
 
     // ==========================================
-    // 24. RESPUESTAS ENCUESTA — Satisfacción Estudiantil (ENC-001)
+    // 24. RESPUESTAS ENCUESTA — Satisfacción Estudiantil (ENC-001, no anónima)
     // ==========================================
     const pregEnc1 = await PreguntaEncuesta.findAll({ where: { encuesta_id: encMap['ENC-001'].id }, order: [['orden', 'ASC']] });
     const estudiantesList = Object.values(testUsuarios).filter(u => u.rol === 'estudiante');
     if (pregEnc1.length > 0 && estudiantesList.length > 0) {
-      const likertData = [
-        { estudiante: estudiantesList[0], valores: [4, 3, 2, 4], texto: 'Mejorar los laboratorios de cómputo.' },
-        { estudiante: estudiantesList[1], valores: [5, 4, 3, 5], texto: 'Incluir más prácticas preprofesionales.' },
-        { estudiante: estudiantesList[2], valores: [3, 4, 4, 3], texto: 'Actualizar el plan de estudios.' },
-        { estudiante: estudiantesList[3], valores: [4, 5, 2, 4], texto: 'Más becas y apoyo económico.' },
-        { estudiante: estudiantesList[4], valores: [2, 3, 1, 3], texto: 'Falta mantenimiento en aulas.' },
+      const respData = [
+        {
+          estudiante: estudiantesList[0],
+          likert: [4, 3, 2, 4, 3, 4, 5],
+          si_no: 1,
+          numerica: 20,
+          texto1: 'Mejorar los laboratorios de cómputo.',
+          texto2: 'Las aulas están en buen estado.',
+        },
+        {
+          estudiante: estudiantesList[1],
+          likert: [5, 4, 3, 5, 4, 3, 4],
+          si_no: 1,
+          numerica: 25,
+          texto1: 'Incluir más prácticas preprofesionales.',
+          texto2: 'Sería bueno tener más convenios.',
+        },
+        {
+          estudiante: estudiantesList[2],
+          likert: [3, 4, 4, 3, 2, 3, 3],
+          si_no: 0,
+          numerica: 15,
+          texto1: 'Actualizar el plan de estudios.',
+          texto2: 'La biblioteca necesita más libros.',
+        },
+        {
+          estudiante: estudiantesList[3],
+          likert: [4, 5, 2, 4, 5, 4, 4],
+          si_no: 1,
+          numerica: 30,
+          texto1: 'Más becas y apoyo económico.',
+          texto2: 'Ampliar el horario de biblioteca.',
+        },
+        {
+          estudiante: estudiantesList[4],
+          likert: [2, 3, 1, 3, 2, 2, 3],
+          si_no: 0,
+          numerica: 10,
+          texto1: 'Falta mantenimiento en aulas.',
+          texto2: 'Equipos de laboratorio obsoletos.',
+        },
       ];
-      for (const entry of likertData) {
-        const pregLikert = pregEnc1.filter(p => p.tipo === 'likert_5').sort((a, b) => a.orden - b.orden);
+      const pregLikert = pregEnc1.filter(p => p.tipo === 'likert_5').sort((a, b) => a.orden - b.orden);
+      const pregSiNo = pregEnc1.find(p => p.tipo === 'si_no');
+      const pregNumerica = pregEnc1.find(p => p.tipo === 'numerica');
+      const pregAbiertas = pregEnc1.filter(p => p.tipo === 'abierta').sort((a, b) => a.orden - b.orden);
+      for (const entry of respData) {
         for (let i = 0; i < pregLikert.length; i++) {
           await RespuestaEncuesta.findOrCreate({
             where: { encuesta_id: encMap['ENC-001'].id, pregunta_id: pregLikert[i].id, usuario_id: entry.estudiante.id },
-            defaults: { encuesta_id: encMap['ENC-001'].id, pregunta_id: pregLikert[i].id, usuario_id: entry.estudiante.id, valor_numerico: entry.valores[i] },
+            defaults: { encuesta_id: encMap['ENC-001'].id, pregunta_id: pregLikert[i].id, usuario_id: entry.estudiante.id, valor_numerico: entry.likert[i] },
           });
         }
-        const pregAbierta = pregEnc1.find(p => p.tipo === 'abierta');
-        if (pregAbierta) {
+        if (pregSiNo) {
           await RespuestaEncuesta.findOrCreate({
-            where: { encuesta_id: encMap['ENC-001'].id, pregunta_id: pregAbierta.id, usuario_id: entry.estudiante.id },
-            defaults: { encuesta_id: encMap['ENC-001'].id, pregunta_id: pregAbierta.id, usuario_id: entry.estudiante.id, valor_texto: entry.texto },
+            where: { encuesta_id: encMap['ENC-001'].id, pregunta_id: pregSiNo.id, usuario_id: entry.estudiante.id },
+            defaults: { encuesta_id: encMap['ENC-001'].id, pregunta_id: pregSiNo.id, usuario_id: entry.estudiante.id, valor_numerico: entry.si_no },
+          });
+        }
+        if (pregNumerica) {
+          await RespuestaEncuesta.findOrCreate({
+            where: { encuesta_id: encMap['ENC-001'].id, pregunta_id: pregNumerica.id, usuario_id: entry.estudiante.id },
+            defaults: { encuesta_id: encMap['ENC-001'].id, pregunta_id: pregNumerica.id, usuario_id: entry.estudiante.id, valor_numerico: entry.numerica },
+          });
+        }
+        for (let i = 0; i < pregAbiertas.length; i++) {
+          const txt = i === 0 ? entry.texto1 : entry.texto2;
+          await RespuestaEncuesta.findOrCreate({
+            where: { encuesta_id: encMap['ENC-001'].id, pregunta_id: pregAbiertas[i].id, usuario_id: entry.estudiante.id },
+            defaults: { encuesta_id: encMap['ENC-001'].id, pregunta_id: pregAbiertas[i].id, usuario_id: entry.estudiante.id, valor_texto: txt },
           });
         }
       }
@@ -494,53 +583,221 @@ const seed = async () => {
     console.log('✅ Respuestas ENC-001 creadas');
 
     // ==========================================
-    // 25. RESPUESTAS ENCUESTA — Egresados (ENC-003)
+    // 25. RESPUESTAS ENCUESTA — Egresados (ENC-003, no anónima)
     // ==========================================
     const pregEnc3 = await PreguntaEncuesta.findAll({ where: { encuesta_id: encMap['ENC-003'].id }, order: [['orden', 'ASC']] });
     const egresadosList = Object.values(testUsuarios).filter(u => u.rol === 'egresado');
     if (pregEnc3.length > 0 && egresadosList.length > 0) {
+      const pregSiNo3 = pregEnc3.filter(p => p.tipo === 'si_no').sort((a, b) => a.orden - b.orden);
+      const pregLikert3 = pregEnc3.filter(p => p.tipo === 'likert_5').sort((a, b) => a.orden - b.orden);
+      const pregMultiple3 = pregEnc3.find(p => p.tipo === 'multiple');
+      const pregNumerica3 = pregEnc3.find(p => p.tipo === 'numerica');
+      const pregAbiertas3 = pregEnc3.filter(p => p.tipo === 'abierta').sort((a, b) => a.orden - b.orden);
       const egresadoData = [
-        { egresado: egresadosList[0], si_no: [1, 1], likert: 4, tiempo: 'Menos de 3 meses', texto: 'Fortalecer convenios empresariales.' },
-        { egresado: egresadosList[1], si_no: [0, 1], likert: 3, tiempo: 'De 6 a 12 meses', texto: 'Incluir certificaciones internacionales.' },
-        { egresado: egresadosList[2], si_no: [1, 0], likert: 5, tiempo: 'De 3 a 6 meses', texto: 'Más enfoque en habilidades blandas.' },
+        {
+          egresado: egresadosList[0],
+          si_no: [1, 1, 1],
+          likert: [4, 3, 5],
+          tiempo: 'Menos de 3 meses',
+          numerica: 5,
+          texto1: 'Fortalecer convenios empresariales.',
+          texto2: 'Mantener la calidad académica.',
+        },
+        {
+          egresado: egresadosList[1],
+          si_no: [0, 1, 1],
+          likert: [3, 2, 4],
+          tiempo: 'De 6 a 12 meses',
+          numerica: 6,
+          texto1: 'Incluir certificaciones internacionales.',
+          texto2: 'Mejorar la bolsa de trabajo.',
+        },
+        {
+          egresado: egresadosList[2],
+          si_no: [1, 0, 1],
+          likert: [5, 4, 5],
+          tiempo: 'De 3 a 6 meses',
+          numerica: 5,
+          texto1: 'Más enfoque en habilidades blandas.',
+          texto2: 'Satisfecho con lo aprendido.',
+        },
       ];
-      const pregSiNo = pregEnc3.filter(p => p.tipo === 'si_no').sort((a, b) => a.orden - b.orden);
-      const pregLikert = pregEnc3.find(p => p.tipo === 'likert_5');
-      const pregMultiple = pregEnc3.find(p => p.tipo === 'multiple');
-      const pregAbierta = pregEnc3.find(p => p.tipo === 'abierta');
+      // Nuevos egresados EST-012 y EST-013
+      for (const u of [egresadosList[3], egresadosList[4]]) {
+        if (u) {
+          egresadoData.push({
+            egresado: u,
+            si_no: [1, 1, 0],
+            likert: [4, 4, 3],
+            tiempo: 'De 3 a 6 meses',
+            numerica: 5,
+            texto1: 'Buenos docentes, mejorar infraestructura.',
+            texto2: 'Fomentar la investigación.',
+          });
+        }
+      }
       for (const entry of egresadoData) {
-        for (let i = 0; i < pregSiNo.length; i++) {
+        for (let i = 0; i < pregSiNo3.length; i++) {
           await RespuestaEncuesta.findOrCreate({
-            where: { encuesta_id: encMap['ENC-003'].id, pregunta_id: pregSiNo[i].id, usuario_id: entry.egresado.id },
-            defaults: { encuesta_id: encMap['ENC-003'].id, pregunta_id: pregSiNo[i].id, usuario_id: entry.egresado.id, valor_numerico: entry.si_no[i] },
+            where: { encuesta_id: encMap['ENC-003'].id, pregunta_id: pregSiNo3[i].id, usuario_id: entry.egresado.id },
+            defaults: { encuesta_id: encMap['ENC-003'].id, pregunta_id: pregSiNo3[i].id, usuario_id: entry.egresado.id, valor_numerico: entry.si_no[i] },
           });
         }
-        if (pregLikert) {
+        for (let i = 0; i < pregLikert3.length; i++) {
           await RespuestaEncuesta.findOrCreate({
-            where: { encuesta_id: encMap['ENC-003'].id, pregunta_id: pregLikert.id, usuario_id: entry.egresado.id },
-            defaults: { encuesta_id: encMap['ENC-003'].id, pregunta_id: pregLikert.id, usuario_id: entry.egresado.id, valor_numerico: entry.likert },
+            where: { encuesta_id: encMap['ENC-003'].id, pregunta_id: pregLikert3[i].id, usuario_id: entry.egresado.id },
+            defaults: { encuesta_id: encMap['ENC-003'].id, pregunta_id: pregLikert3[i].id, usuario_id: entry.egresado.id, valor_numerico: entry.likert[i] },
           });
         }
-        if (pregMultiple) {
+        if (pregMultiple3) {
           await RespuestaEncuesta.findOrCreate({
-            where: { encuesta_id: encMap['ENC-003'].id, pregunta_id: pregMultiple.id, usuario_id: entry.egresado.id },
-            defaults: { encuesta_id: encMap['ENC-003'].id, pregunta_id: pregMultiple.id, usuario_id: entry.egresado.id, valor_texto: entry.tiempo },
+            where: { encuesta_id: encMap['ENC-003'].id, pregunta_id: pregMultiple3.id, usuario_id: entry.egresado.id },
+            defaults: { encuesta_id: encMap['ENC-003'].id, pregunta_id: pregMultiple3.id, usuario_id: entry.egresado.id, valor_texto: entry.tiempo },
           });
         }
-        if (pregAbierta) {
+        if (pregNumerica3) {
           await RespuestaEncuesta.findOrCreate({
-            where: { encuesta_id: encMap['ENC-003'].id, pregunta_id: pregAbierta.id, usuario_id: entry.egresado.id },
-            defaults: { encuesta_id: encMap['ENC-003'].id, pregunta_id: pregAbierta.id, usuario_id: entry.egresado.id, valor_texto: entry.texto },
+            where: { encuesta_id: encMap['ENC-003'].id, pregunta_id: pregNumerica3.id, usuario_id: entry.egresado.id },
+            defaults: { encuesta_id: encMap['ENC-003'].id, pregunta_id: pregNumerica3.id, usuario_id: entry.egresado.id, valor_numerico: entry.numerica },
+          });
+        }
+        for (let i = 0; i < pregAbiertas3.length; i++) {
+          const txt = i === 0 ? entry.texto1 : entry.texto2;
+          await RespuestaEncuesta.findOrCreate({
+            where: { encuesta_id: encMap['ENC-003'].id, pregunta_id: pregAbiertas3[i].id, usuario_id: entry.egresado.id },
+            defaults: { encuesta_id: encMap['ENC-003'].id, pregunta_id: pregAbiertas3[i].id, usuario_id: entry.egresado.id, valor_texto: txt },
           });
         }
       }
     }
     console.log('✅ Respuestas ENC-003 creadas');
 
+    // ==========================================
+    // 26. RESPUESTAS ENCUESTA — Docencia (ENC-002, anónima)
+    // ==========================================
+    // Limpiar respuestas anónimas previas para evitar duplicados al re-ejecutar
+    await RespuestaEncuesta.destroy({ where: { encuesta_id: encMap['ENC-002'].id, usuario_id: null } });
+    const pregEnc2 = await PreguntaEncuesta.findAll({ where: { encuesta_id: encMap['ENC-002'].id }, order: [['orden', 'ASC']] });
+    if (pregEnc2.length > 0) {
+      const pregLikert2 = pregEnc2.filter(p => p.tipo === 'likert_5').sort((a, b) => a.orden - b.orden);
+      const pregSiNo2 = pregEnc2.filter(p => p.tipo === 'si_no').sort((a, b) => a.orden - b.orden);
+      const pregNumerica2 = pregEnc2.find(p => p.tipo === 'numerica');
+      const pregAbierta2 = pregEnc2.find(p => p.tipo === 'abierta');
+      // Encuesta anónima — no se asigna usuario_id
+      for (let r = 0; r < 8; r++) {
+        const likert = pregLikert2.map(() => Math.floor(Math.random() * 5) + 1);
+        const si_no = pregSiNo2.map(() => Math.round(Math.random()));
+        const numerica = Math.floor(Math.random() * 5) + 6;
+        for (let i = 0; i < pregLikert2.length; i++) {
+          await RespuestaEncuesta.create({
+            encuesta_id: encMap['ENC-002'].id,
+            pregunta_id: pregLikert2[i].id,
+            usuario_id: null,
+            valor_numerico: likert[i],
+          });
+        }
+        for (let i = 0; i < pregSiNo2.length; i++) {
+          await RespuestaEncuesta.create({
+            encuesta_id: encMap['ENC-002'].id,
+            pregunta_id: pregSiNo2[i].id,
+            usuario_id: null,
+            valor_numerico: si_no[i],
+          });
+        }
+        if (pregNumerica2) {
+          await RespuestaEncuesta.create({
+            encuesta_id: encMap['ENC-002'].id,
+            pregunta_id: pregNumerica2.id,
+            usuario_id: null,
+            valor_numerico: numerica,
+          });
+        }
+        if (pregAbierta2) {
+          const textos = [
+            'Buen docente, claro y preciso.',
+            'Mejorar la retroalimentación.',
+            'Las clases son dinámicas.',
+            'Más ejercicios prácticos.',
+            'Explica muy bien los temas.',
+            'Faltó más profundidad.',
+            'Buen material de apoyo.',
+            'Recomendaría el curso.',
+          ];
+          await RespuestaEncuesta.create({
+            encuesta_id: encMap['ENC-002'].id,
+            pregunta_id: pregAbierta2.id,
+            usuario_id: null,
+            valor_texto: textos[r % textos.length],
+          });
+        }
+      }
+    }
+    console.log('✅ Respuestas ENC-002 creadas');
+
+    // ==========================================
+    // 27. RESPUESTAS ENCUESTA — Clima Laboral (ENC-004, anónima)
+    // ==========================================
+    // Limpiar respuestas anónimas previas para evitar duplicados al re-ejecutar
+    await RespuestaEncuesta.destroy({ where: { encuesta_id: encMap['ENC-004'].id, usuario_id: null } });
+    const pregEnc4 = await PreguntaEncuesta.findAll({ where: { encuesta_id: encMap['ENC-004'].id }, order: [['orden', 'ASC']] });
+    if (pregEnc4.length > 0) {
+      const pregLikert4 = pregEnc4.filter(p => p.tipo === 'likert_5').sort((a, b) => a.orden - b.orden);
+      const pregSiNo4 = pregEnc4.filter(p => p.tipo === 'si_no').sort((a, b) => a.orden - b.orden);
+      const pregNumerica4 = pregEnc4.filter(p => p.tipo === 'numerica').sort((a, b) => a.orden - b.orden);
+      const pregAbierta4 = pregEnc4.find(p => p.tipo === 'abierta');
+      // Encuesta anónima
+      for (let r = 0; r < 6; r++) {
+        const likert = pregLikert4.map(() => Math.floor(Math.random() * 5) + 1);
+        const si_no = pregSiNo4.map(() => Math.round(Math.random()));
+        const numericas = pregNumerica4.map(() => Math.floor(Math.random() * 20) + 1);
+        for (let i = 0; i < pregLikert4.length; i++) {
+          await RespuestaEncuesta.create({
+            encuesta_id: encMap['ENC-004'].id,
+            pregunta_id: pregLikert4[i].id,
+            usuario_id: null,
+            valor_numerico: likert[i],
+          });
+        }
+        for (let i = 0; i < pregSiNo4.length; i++) {
+          await RespuestaEncuesta.create({
+            encuesta_id: encMap['ENC-004'].id,
+            pregunta_id: pregSiNo4[i].id,
+            usuario_id: null,
+            valor_numerico: si_no[i],
+          });
+        }
+        for (let i = 0; i < pregNumerica4.length; i++) {
+          await RespuestaEncuesta.create({
+            encuesta_id: encMap['ENC-004'].id,
+            pregunta_id: pregNumerica4[i].id,
+            usuario_id: null,
+            valor_numerico: numericas[i],
+          });
+        }
+        if (pregAbierta4) {
+          const textos = [
+            'Mejorar la comunicación interna.',
+            'Fomentar el trabajo en equipo.',
+            'Más recursos para el área.',
+            'Capacitación continua.',
+            'Ambiente laboral positivo.',
+            'Agilizar procesos administrativos.',
+          ];
+          await RespuestaEncuesta.create({
+            encuesta_id: encMap['ENC-004'].id,
+            pregunta_id: pregAbierta4.id,
+            usuario_id: null,
+            valor_texto: textos[r % textos.length],
+          });
+        }
+      }
+    }
+    console.log('✅ Respuestas ENC-004 creadas');
+
     console.log('');
     console.log('🎉 SEED COMPLETADO SATISFACTORIAMENTE');
     console.log('   📊 6 macroprocesos · 10 procesos · 17 actividades · 12 riesgos');
-    console.log('   📊 8 indicadores · 6 documentos · 3 encuestas · 6 hallazgos');
+    console.log('   📊 8 indicadores · 6 documentos · 4 encuestas · 6 hallazgos');
     console.log('   📊 4 CAPAs · 3 estándares · 4 autoevaluaciones · 3 planes auditoría');
     process.exit(0);
   } catch (error) {

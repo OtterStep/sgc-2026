@@ -22,7 +22,7 @@ CREATE TABLE usuarios (
     apellidos VARCHAR(100) NOT NULL,
     correo VARCHAR(150) UNIQUE NOT NULL,
     contrasena_hash VARCHAR(255) NOT NULL,
-    rol VARCHAR(50) NOT NULL CHECK (rol IN ('admin', 'gestor_calidad', 'auditor', 'docente', 'estudiante', 'egresado', 'invitado')),
+    rol VARCHAR(50) NOT NULL CHECK (rol IN ('admin', 'gestor_calidad', 'auditor', 'docente', 'estudiante', 'egresado', 'administrativo', 'invitado')),
     facultad VARCHAR(100),
     escuela VARCHAR(100),
     activo BOOLEAN DEFAULT TRUE,
@@ -465,7 +465,10 @@ INSERT INTO tipos_documento (codigo, nombre, descripcion, requiere_aprobacion) V
 ('FOR', 'Formato', 'Formatos y plantillas', FALSE);
 
 INSERT INTO usuarios (codigo, nombres, apellidos, correo, contrasena_hash, rol, facultad, escuela, activo) VALUES
-('ADM-001', 'Admin', 'SGC', 'admin@unitru.edu.pe', '$2a$10$WIJEFhvFbf5JcxVSHvevROXEIkk7EM6rFPfUIPQvyCoXfC.FxPjRm', 'admin', 'Ingeniería', 'Sistemas', TRUE);
+('ADM-001', 'Admin', 'SGC', 'admin@unitru.edu.pe', '$2a$10$WIJEFhvFbf5JcxVSHvevROXEIkk7EM6rFPfUIPQvyCoXfC.FxPjRm', 'admin', 'Ingeniería', 'Sistemas', TRUE),
+('GES-001', 'Gestor', 'Calidad', 'gestor@unitru.edu.pe', '$2a$10$WIJEFhvFbf5JcxVSHvevROXEIkk7EM6rFPfUIPQvyCoXfC.FxPjRm', 'gestor_calidad', 'Ingeniería', 'Sistemas', TRUE),
+('AUD-001', 'Auditor', 'Interno', 'auditor@unitru.edu.pe', '$2a$10$WIJEFhvFbf5JcxVSHvevROXEIkk7EM6rFPfUIPQvyCoXfC.FxPjRm', 'auditor', 'Ciencias', 'Contabilidad', TRUE),
+('DOC-001', 'Docente', 'Principal', 'docente@unitru.edu.pe', '$2a$10$WIJEFhvFbf5JcxVSHvevROXEIkk7EM6rFPfUIPQvyCoXfC.FxPjRm', 'docente', 'Ingeniería', 'Sistemas', TRUE);
 
 INSERT INTO parametros_sistema (clave, valor, descripcion) VALUES
 ('institucion_nombre', 'Universidad Nacional de Trujillo', 'Nombre de la institución'),

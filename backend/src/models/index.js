@@ -487,6 +487,7 @@ EvaluacionCriterio.belongsTo(FactorCriterio, { foreignKey: 'factor_id', as: 'fac
 PreguntaEncuesta.belongsTo(Encuesta, { foreignKey: 'encuesta_id', as: 'encuesta' });
 RespuestaEncuesta.belongsTo(Encuesta, { foreignKey: 'encuesta_id', as: 'encuesta' });
 RespuestaEncuesta.belongsTo(PreguntaEncuesta, { foreignKey: 'pregunta_id', as: 'pregunta' });
+RespuestaEncuesta.belongsTo(Usuario, { as: 'usuario', foreignKey: 'usuario_id' });
 
 // Relaciones adicionales requeridas por controladores
 Documento.belongsTo(Usuario, { as: 'creadoPor', foreignKey: 'creado_por' });

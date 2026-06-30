@@ -278,17 +278,6 @@ export const obtenerResultados = async (req, res) => {
       where: { encuesta_id: id },
     });
 
-    // Contar respondentes únicos
-    const totalPreguntas = encuesta.preguntas.length;
-    const identificados = new Set(
-      todasRespuestas.filter((r) => r.usuario_id).map((r) => r.usuario_id)
-    );
-    const totalRespondentes = identificados.size > 0
-      ? identificados.size
-      : totalPreguntas > 0
-        ? Math.round(todasRespuestas.length / totalPreguntas)
-        : 0;
-
     // Contar usuarios potenciales según dirigido_a
     const rolMap = { estudiantes: 'estudiante', docentes: 'docente', egresados: 'egresado', administrativos: 'administrativo' };
     const rolWhere = rolMap[encuesta.dirigido_a];
@@ -297,6 +286,17 @@ export const obtenerResultados = async (req, res) => {
       : rolMap[encuesta.dirigido_a] === undefined && encuesta.dirigido_a !== 'todos'
         ? 0
         : await Usuario.count({ where: { activo: true } });
+
+    // Contar respondentes únicos
+    const totalPreguntas = encuesta.preguntas.length;
+    const identificados = new Set(
+      todasRespuestas.filter((r) => r.usuario_id).map((r) => r.usuario_id)
+    );
+    const totalRespondentes = identificados.size > 0
+      ? identificados.size
+      : totalPreguntas > 0
+        ? Math.min(Math.round(todasRespuestas.length / totalPreguntas), totalEsperado)
+        : 0;
 
     const resultadosPorPregunta = encuesta.preguntas.map((pregunta) => {
       const rPreg = todasRespuestas.filter((r) => r.pregunta_id === pregunta.id);
@@ -346,6 +346,136 @@ export const obtenerResultados = async (req, res) => {
       total_respondentes: totalRespondentes,
       total_esperado: totalEsperado,
       resultados: resultadosPorPregunta,
+    });
+  } catch (err) {
+    res.status(500).json({ error: formatError(err) });
+  }
+};
+
+// ============================================================
+// PARTICIPACIÓN POR ESCUELAS
+// Devuelve quiénes respondieron y quiénes no, agrupado por
+// facultad y escuela.
+// ============================================================
+export const obtenerParticipacionEscuelas = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const encuesta = await Encuesta.findByPk(id);
+    if (!encuesta) return res.status(404).json({ error: 'Encuesta no encontrada' });
+
+    const rolMap = {
+      estudiantes: 'estudiante',
+      docentes: 'docente',
+      egresados: 'egresado',
+      administrativos: 'administrativo',
+    };
+    const rolWhere = rolMap[encuesta.dirigido_a];
+
+    if (!rolWhere && encuesta.dirigido_a !== 'todos') {
+      return res.json({
+        anonima: encuesta.anonima,
+        total_respondentes: 0,
+        total_esperado: 0,
+        por_escuela: [],
+      });
+    }
+
+    const whereUsuarios = rolWhere
+      ? { rol: rolWhere, activo: true }
+      : { activo: true };
+
+    const usuarios = await Usuario.findAll({
+      where: whereUsuarios,
+      attributes: ['id', 'nombres', 'apellidos', 'correo', 'facultad', 'escuela'],
+      order: [['facultad', 'ASC'], ['escuela', 'ASC'], ['apellidos', 'ASC']],
+    });
+
+    const preguntasCount = await PreguntaEncuesta.count({ where: { encuesta_id: id } });
+
+    if (encuesta.anonima) {
+      const totalRows = await RespuestaEncuesta.count({ where: { encuesta_id: id } });
+      const anonRespondentes = preguntasCount > 0 ? Math.round(totalRows / preguntasCount) : 0;
+      const totalEsp = usuarios.length;
+      const globalPct = totalEsp > 0 ? Math.min(anonRespondentes / totalEsp, 1) : 0;
+
+      const gruposAnon = {};
+      for (const u of usuarios) {
+        const key = `${u.facultad || 'Sin facultad'}|||${u.escuela || 'Sin escuela'}`;
+        if (!gruposAnon[key]) {
+          gruposAnon[key] = {
+            facultad: u.facultad || 'Sin facultad',
+            escuela: u.escuela || 'Sin escuela',
+            total: 0,
+            respondieron: 0,
+            no_respondieron: 0,
+          };
+        }
+        gruposAnon[key].total++;
+      }
+
+      const porEscuelaAnon = Object.values(gruposAnon).map((g) => {
+        const est = Math.round(g.total * globalPct);
+        return {
+          ...g,
+          respondieron: est,
+          no_respondieron: g.total - est,
+          porcentaje: g.total > 0 ? Math.round(globalPct * 100) : 0,
+        };
+      });
+
+      return res.json({
+        anonima: true,
+        total_respondentes: Math.min(anonRespondentes, totalEsp),
+        total_esperado: totalEsp,
+        por_escuela: porEscuelaAnon,
+      });
+    }
+
+    const respuestas = await RespuestaEncuesta.findAll({
+      where: { encuesta_id: id, usuario_id: { [Op.ne]: null } },
+      attributes: ['usuario_id'],
+    });
+    const respondedIds = new Set(respuestas.map((r) => r.usuario_id));
+
+    const grupos = {};
+    for (const u of usuarios) {
+      const key = `${u.facultad || 'Sin facultad'}|||${u.escuela || 'Sin escuela'}`;
+      if (!grupos[key]) {
+        grupos[key] = {
+          facultad: u.facultad || 'Sin facultad',
+          escuela: u.escuela || 'Sin escuela',
+          total: 0,
+          respondieron: 0,
+          no_respondieron: 0,
+          respondieron_list: [],
+          no_respondieron_list: [],
+        };
+      }
+      grupos[key].total++;
+      if (respondedIds.has(u.id)) {
+        grupos[key].respondieron++;
+        grupos[key].respondieron_list.push({
+          id: u.id, nombres: u.nombres, apellidos: u.apellidos, correo: u.correo,
+        });
+      } else {
+        grupos[key].no_respondieron++;
+        grupos[key].no_respondieron_list.push({
+          id: u.id, nombres: u.nombres, apellidos: u.apellidos, correo: u.correo,
+        });
+      }
+    }
+
+    const porEscuela = Object.values(grupos).map((g) => ({
+      ...g,
+      porcentaje: g.total > 0 ? Math.round((g.respondieron / g.total) * 100) : 0,
+    }));
+
+    res.json({
+      anonima: false,
+      total_respondentes: [...respondedIds].length,
+      total_esperado: usuarios.length,
+      por_escuela: porEscuela,
     });
   } catch (err) {
     res.status(500).json({ error: formatError(err) });

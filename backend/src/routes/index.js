@@ -58,6 +58,7 @@ router.get('/procesos/:proceso_id/actividades', verificarToken, procCtrl.listarA
 router.post('/actividades', verificarToken, verificarRol(['admin', 'gestor_calidad']), procCtrl.crearActividad);
 
 // Mapa de Procesos - Versiones
+router.get('/mapa/publico', procCtrl.obtenerMapaPublico);
 router.get('/mapa/actual', verificarToken, procCtrl.obtenerMapaActual);
 router.get('/mapa/versiones', verificarToken, procCtrl.listarVersionesMapa);
 router.post('/mapa/nueva-version', verificarToken, verificarRol(['admin', 'gestor_calidad']), procCtrl.crearNuevaVersionMapa);
@@ -129,6 +130,7 @@ router.post('/encuestas/:encuesta_id/preguntas', verificarToken, verificarRol(['
 router.delete('/preguntas/:id', verificarToken, verificarRol(['admin', 'gestor_calidad']), encCtrl.eliminarPregunta);
 router.post('/encuestas/responder', verificarToken, encCtrl.enviarRespuesta);
 router.get('/encuestas/:id/resultados', verificarToken, encCtrl.obtenerResultados);
+router.get('/encuestas/:id/participacion-escuelas', verificarToken, encCtrl.obtenerParticipacionEscuelas);
 
 // Dashboard
 router.get('/dashboard/estadisticas', verificarToken, dashCtrl.getEstadisticas);

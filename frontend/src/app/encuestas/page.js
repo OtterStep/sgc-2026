@@ -1,6 +1,6 @@
 'use client';
 import Sidebar from '@/components/layout/Sidebar';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Fragment } from 'react';
 import axios from 'axios';
 import {
   ClipboardList, Plus, Send, BarChart3, ChevronDown, ChevronUp,
@@ -337,10 +337,210 @@ function SiNoChart({ si, no, total }) {
   );
 }
 
+function TabParticipacion({ encuestaId, anonima }) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [expandidos, setExpandidos] = useState({});
+
+  useEffect(() => {
+    axios.get(`/api/v1/encuestas/${encuestaId}/participacion-escuelas`)
+      .then((r) => setData(r.data))
+      .catch(swalError)
+      .finally(() => setLoading(false));
+  }, [encuestaId]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20 text-slate-400">
+        <p className="text-sm">Cargando participación…</p>
+      </div>
+    );
+  }
+
+  if (!data) return null;
+
+  const { total_respondentes, total_esperado, por_escuela, anonima: esAnonima } = data;
+
+  const porFacultad = {};
+  por_escuela.forEach((item) => {
+    if (!porFacultad[item.facultad]) {
+      porFacultad[item.facultad] = {
+        facultad: item.facultad,
+        escuelas: [],
+        total: 0,
+        respondieron: 0,
+        no_respondieron: 0,
+      };
+    }
+    porFacultad[item.facultad].escuelas.push(item);
+    porFacultad[item.facultad].total += item.total;
+    porFacultad[item.facultad].respondieron += item.respondieron;
+    porFacultad[item.facultad].no_respondieron += item.no_respondieron;
+  });
+
+  const toggleExpand = (key) => {
+    setExpandidos((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const barData = Object.values(porFacultad).map((f) => ({
+    name: f.facultad,
+    Respondieron: f.respondieron,
+    'No respondieron': f.no_respondieron,
+  }));
+
+  return (
+    <div>
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="bg-blue-50 rounded-xl p-4 text-center">
+          <p className="text-3xl font-bold text-blue-600">{total_respondentes}</p>
+          <p className="text-xs text-blue-500 mt-1 font-medium">Respondentes</p>
+        </div>
+        <div className="bg-emerald-50 rounded-xl p-4 text-center">
+          <p className="text-3xl font-bold text-emerald-600">{total_esperado}</p>
+          <p className="text-xs text-emerald-500 mt-1 font-medium">Esperados</p>
+        </div>
+        <div className="bg-slate-50 rounded-xl p-4 text-center">
+          <p className="text-3xl font-bold text-slate-700">
+            {total_esperado > 0 ? Math.round((total_respondentes / total_esperado) * 100) : 0}%
+          </p>
+          <p className="text-xs text-slate-500 mt-1 font-medium">Participación</p>
+        </div>
+      </div>
+
+      {barData.length > 0 && (
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
+          <h4 className="text-sm font-semibold text-slate-700 mb-4">Participación por Facultad</h4>
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={barData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+              <YAxis tick={{ fontSize: 12 }} />
+              <Tooltip />
+              <Bar dataKey="Respondieron" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="No respondieron" fill="#cbd5e1" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-200">
+          <h4 className="text-sm font-semibold text-slate-700">Desglose por Facultad y Escuela</h4>
+          {esAnonima && (
+            <p className="text-xs text-slate-400 mt-1">
+              La encuesta es anónima, no se pueden mostrar usuarios individuales.
+            </p>
+          )}
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-slate-50">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Facultad / Escuela</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase">Total</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase">Respondieron</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase">No respondieron</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase">%</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-200">
+              {Object.values(porFacultad).map((f) => (
+                <Fragment key={f.facultad}>
+                  <tr className="bg-slate-100/50">
+                    <td className="px-4 py-3 text-sm font-bold text-slate-800">{f.facultad}</td>
+                    <td className="px-4 py-3 text-center text-sm font-semibold text-slate-700">{f.total}</td>
+                    <td className="px-4 py-3 text-center text-sm font-semibold text-emerald-600">{f.respondieron}</td>
+                    <td className="px-4 py-3 text-center text-sm font-semibold text-red-500">{f.no_respondieron}</td>
+                    <td className="px-4 py-3 text-center text-sm font-semibold text-slate-700">
+                      {f.total > 0 ? Math.round((f.respondieron / f.total) * 100) : 0}%
+                    </td>
+                  </tr>
+                  {f.escuelas.map((e) => {
+                    const expandKey = `${f.facultad}||${e.escuela}`;
+                    const expanded = expandidos[expandKey];
+                    return (
+                      <Fragment key={expandKey}>
+                        <tr
+                          className="hover:bg-slate-50 cursor-pointer"
+                          onClick={() => toggleExpand(expandKey)}
+                        >
+                          <td className="px-4 py-3 text-sm text-slate-700 pl-10">
+                            <span className="inline-flex items-center gap-1.5">
+                              <ChevronDown size={12} className={`transition-transform ${expanded ? '' : '-rotate-90'}`} />
+                              {e.escuela}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-center text-sm text-slate-600">{e.total}</td>
+                          <td className="px-4 py-3 text-center text-sm text-emerald-600 font-medium">{e.respondieron}</td>
+                          <td className="px-4 py-3 text-center text-sm text-red-500 font-medium">{e.no_respondieron}</td>
+                          <td className="px-4 py-3 text-center text-sm text-slate-600">{e.porcentaje}%</td>
+                        </tr>
+                        {expanded && (
+                          <tr>
+                            <td colSpan={5} className="px-6 py-4 bg-slate-50">
+                              {esAnonima ? (
+                                <p className="text-xs text-slate-400 italic text-center">
+                                  La encuesta es anónima, no es posible identificar usuarios individuales.
+                                </p>
+                              ) : (
+                                <div className="grid grid-cols-2 gap-6">
+                                  <div>
+                                    <p className="text-xs font-semibold text-emerald-600 mb-2 flex items-center gap-1">
+                                      <CheckCircle2 size={13} /> Respondieron ({e.respondieron_list.length})
+                                    </p>
+                                    {e.respondieron_list.length > 0 ? (
+                                      <ul className="space-y-1">
+                                        {e.respondieron_list.map((u) => (
+                                          <li key={u.id} className="text-xs text-slate-600 flex items-center gap-1">
+                                            <span>{u.nombres} {u.apellidos}</span>
+                                            <span className="text-slate-400">· {u.correo}</span>
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    ) : (
+                                      <p className="text-xs text-slate-400 italic">—</p>
+                                    )}
+                                  </div>
+                                  <div>
+                                    <p className="text-xs font-semibold text-red-500 mb-2 flex items-center gap-1">
+                                      <X size={13} /> No respondieron ({e.no_respondieron_list.length})
+                                    </p>
+                                    {e.no_respondieron_list.length > 0 ? (
+                                      <ul className="space-y-1">
+                                        {e.no_respondieron_list.map((u) => (
+                                          <li key={u.id} className="text-xs text-slate-600 flex items-center gap-1">
+                                            <span>{u.nombres} {u.apellidos}</span>
+                                            <span className="text-slate-400">· {u.correo}</span>
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    ) : (
+                                      <p className="text-xs text-slate-400 italic">Todos respondieron</p>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        )}
+                      </Fragment>
+                    );
+                  })}
+                </Fragment>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function VistaResultados({ encuestaId, onVolver }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [vistaPreg, setVistaPreg] = useState({});
+  const [tabActivo, setTabActivo] = useState('respuestas');
 
   useEffect(() => {
     axios.get(`/api/v1/encuestas/${encuestaId}/resultados`)
@@ -409,79 +609,107 @@ function VistaResultados({ encuestaId, onVolver }) {
         </div>
       </div>
 
-      {total_esperado > 0 && <ParticipationChart respondentes={total_respondentes} esperado={total_esperado} />}
-
-      <div className="space-y-4">
-        {resultados.map((r, i) => {
-          const vp = vistaPreg[r.pregunta_id] || 'barras';
-          return (
-            <div key={r.pregunta_id} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-              <div className="flex items-start justify-between mb-1">
-                <p className="text-sm font-semibold text-slate-800 leading-snug">
-                  <span className="text-blue-500 mr-1.5">{i + 1}.</span>{r.texto}
-                </p>
-                <span className="ml-3 shrink-0 text-xs px-2.5 py-0.5 bg-blue-50 text-blue-600 rounded-full font-medium">
-                  {TIPO_LABELS[r.tipo]}
-                </span>
-              </div>
-              <p className="text-xs text-slate-400 mb-3">
-                {r.total} respuesta{r.total !== 1 ? 's' : ''}
-                {r.promedio !== null && (r.tipo === 'likert_5' || r.tipo === 'likert_7') && (
-                  <span className="ml-3 font-semibold text-blue-600">Promedio: {r.promedio}</span>
-                )}
-              </p>
-
-              {['likert_5', 'likert_7', 'numerica'].includes(r.tipo) && (
-                <>
-                  {r.distribucion && Object.keys(r.distribucion).length > 0 ? (
-                    <div>
-                      <div className="flex gap-1 mb-2">
-                        <button onClick={() => setVistaPreg({ ...vistaPreg, [r.pregunta_id]: 'barras' })}
-                          className={`text-xs px-2 py-1 rounded ${vp === 'barras' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-500'}`}>
-                          Gráfico
-                        </button>
-                        <button onClick={() => setVistaPreg({ ...vistaPreg, [r.pregunta_id]: 'tabla' })}
-                          className={`text-xs px-2 py-1 rounded ${vp === 'tabla' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-500'}`}>
-                          Tabla
-                        </button>
-                      </div>
-                      {vp === 'barras' ? (
-                        <LikertChart distribucion={r.distribucion} total={r.total} />
-                      ) : (
-                        <div className="space-y-2 mt-2">
-                          {Object.entries(r.distribucion)
-                            .sort((a, b) => Number(a[0]) - Number(b[0]))
-                            .map(([v, c]) => (
-                              <BarraDistribucion key={v} valor={v} conteo={c} total={r.total}
-                                max={Math.max(...Object.values(r.distribucion))} />
-                            ))}
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-slate-400 italic">Sin respuestas aún.</p>
-                  )}
-                </>
-              )}
-
-              {r.tipo === 'si_no' && <SiNoChart si={r.si} no={r.no} total={r.total} />}
-
-              {r.tipo === 'abierta' && (
-                <ul className="space-y-2">
-                  {(r.respuestas_texto ?? []).length > 0
-                    ? r.respuestas_texto.map((t, j) => (
-                        <li key={j} className="text-sm text-slate-700 bg-slate-50 rounded-xl px-4 py-2.5 border border-slate-200">
-                          &ldquo;{t}&rdquo;
-                        </li>
-                      ))
-                    : <li className="text-sm text-slate-400 italic">Sin respuestas abiertas aún.</li>
-                  }
-                </ul>
-              )}
-            </div>
-          );
-        })}
+      {/* Tabs */}
+      <div className="flex gap-2 mb-6">
+        <button onClick={() => setTabActivo('respuestas')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            tabActivo === 'respuestas'
+              ? 'bg-blue-600 text-white'
+              : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+          }`}>
+          <BarChart3 size={16} /> Respuestas
+        </button>
+        <button onClick={() => setTabActivo('participacion')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            tabActivo === 'participacion'
+              ? 'bg-blue-600 text-white'
+              : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+          }`}>
+          <Users size={16} /> Participación
+        </button>
       </div>
+
+      {tabActivo === 'respuestas' && (
+        <>
+          {total_esperado > 0 && <ParticipationChart respondentes={total_respondentes} esperado={total_esperado} />}
+
+          <div className="space-y-4">
+            {resultados.map((r, i) => {
+              const vp = vistaPreg[r.pregunta_id] || 'barras';
+              return (
+                <div key={r.pregunta_id} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+                  <div className="flex items-start justify-between mb-1">
+                    <p className="text-sm font-semibold text-slate-800 leading-snug">
+                      <span className="text-blue-500 mr-1.5">{i + 1}.</span>{r.texto}
+                    </p>
+                    <span className="ml-3 shrink-0 text-xs px-2.5 py-0.5 bg-blue-50 text-blue-600 rounded-full font-medium">
+                      {TIPO_LABELS[r.tipo]}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-400 mb-3">
+                    {r.total} respuesta{r.total !== 1 ? 's' : ''}
+                    {r.promedio !== null && (r.tipo === 'likert_5' || r.tipo === 'likert_7') && (
+                      <span className="ml-3 font-semibold text-blue-600">Promedio: {r.promedio}</span>
+                    )}
+                  </p>
+
+                  {['likert_5', 'likert_7', 'numerica'].includes(r.tipo) && (
+                    <>
+                      {r.distribucion && Object.keys(r.distribucion).length > 0 ? (
+                        <div>
+                          <div className="flex gap-1 mb-2">
+                            <button onClick={() => setVistaPreg({ ...vistaPreg, [r.pregunta_id]: 'barras' })}
+                              className={`text-xs px-2 py-1 rounded ${vp === 'barras' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-500'}`}>
+                              Gráfico
+                            </button>
+                            <button onClick={() => setVistaPreg({ ...vistaPreg, [r.pregunta_id]: 'tabla' })}
+                              className={`text-xs px-2 py-1 rounded ${vp === 'tabla' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-500'}`}>
+                              Tabla
+                            </button>
+                          </div>
+                          {vp === 'barras' ? (
+                            <LikertChart distribucion={r.distribucion} total={r.total} />
+                          ) : (
+                            <div className="space-y-2 mt-2">
+                              {Object.entries(r.distribucion)
+                                .sort((a, b) => Number(a[0]) - Number(b[0]))
+                                .map(([v, c]) => (
+                                  <BarraDistribucion key={v} valor={v} conteo={c} total={r.total}
+                                    max={Math.max(...Object.values(r.distribucion))} />
+                                ))}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-slate-400 italic">Sin respuestas aún.</p>
+                      )}
+                    </>
+                  )}
+
+                  {r.tipo === 'si_no' && <SiNoChart si={r.si} no={r.no} total={r.total} />}
+
+                  {r.tipo === 'abierta' && (
+                    <ul className="space-y-2">
+                      {(r.respuestas_texto ?? []).length > 0
+                        ? r.respuestas_texto.map((t, j) => (
+                            <li key={j} className="text-sm text-slate-700 bg-slate-50 rounded-xl px-4 py-2.5 border border-slate-200">
+                              &ldquo;{t}&rdquo;
+                            </li>
+                          ))
+                        : <li className="text-sm text-slate-400 italic">Sin respuestas abiertas aún.</li>
+                      }
+                    </ul>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+
+      {tabActivo === 'participacion' && (
+        <TabParticipacion encuestaId={encuestaId} anonima={encuesta.anonima} />
+      )}
     </div>
   );
 }

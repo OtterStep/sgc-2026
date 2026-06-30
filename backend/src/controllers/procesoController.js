@@ -188,6 +188,37 @@ export const reporteMapaProcesos = async (req, res) => {
 // MAPA DE PROCESOS - VERSIONES
 // ==========================================
 
+export const obtenerMapaPublico = async (req, res) => {
+  try {
+    const param = await ParametroSistema.findOne({ where: { clave: 'version_mapa_actual' } });
+    const versionActual = parseInt(param?.valor || '0', 10);
+
+    if (versionActual === 0) {
+      return res.json({ publicada: false, version: null, datos: null });
+    }
+
+    const version = await VersionMapa.findOne({
+      where: { numero_version: versionActual, activa: true },
+      include: [{ model: Usuario, as: 'creadoPor', attributes: ['nombres', 'apellidos'] }],
+    });
+
+    if (version) {
+      return res.json({
+        publicada: true,
+        version: version.numero_version,
+        datos: version.datos,
+        creado_en: version.creado_en,
+        cambios_descripcion: version.cambios_descripcion,
+        creado_por: version.creadoPor,
+      });
+    }
+
+    return res.json({ publicada: false, version: null, datos: null });
+  } catch (err) {
+    res.status(500).json({ error: formatError(err) });
+  }
+};
+
 export const obtenerMapaActual = async (req, res) => {
   try {
     const param = await ParametroSistema.findOne({ where: { clave: 'version_mapa_actual' } });

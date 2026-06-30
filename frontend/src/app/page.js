@@ -12,6 +12,7 @@ import {
   FileText,
 } from 'lucide-react';
 import QualitySeal from '@/components/QualitySeal';
+import PublicProcessMap from '@/components/PublicProcessMap';
 
 const PHASES = [
   {
@@ -186,6 +187,9 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Mapa de Procesos */}
+      <PublicProcessMap />
 
       {/* CTA band */}
       <section className="bg-[#0B2545] px-6 py-16">
