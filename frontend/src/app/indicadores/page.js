@@ -24,6 +24,7 @@ export default function IndicadoresPage() {
   const [periodos, setPeriodos] = useState([]);
   const [indicadorSel, setIndicadorSel] = useState(null);
   const [mediciones, setMediciones] = useState([]);
+  const [fetchKey, setFetchKey] = useState(0);
   const [cargando, setCargando] = useState(true);
 
   // Filtro reporte
@@ -59,13 +60,29 @@ export default function IndicadoresPage() {
     finally { setCargando(false); }
   };
 
-  const cargarMediciones = async (ind) => {
+  const cargarMediciones = (ind) => {
     setIndicadorSel(ind);
-    try {
-      const { data } = await axios.get(`/api/v1/indicadores/${ind.id}/mediciones`);
-      setMediciones(data);
-    } catch { setMediciones([]); }
   };
+
+  useEffect(() => {
+    if (!indicadorSel) return;
+    const fetchMediciones = async () => {
+      try {
+        const params = {};
+        if (tipoFiltro === 'periodo' && filtroPeriodoId) {
+          params.tipo_filtro = 'periodo';
+          params.periodo_id = filtroPeriodoId;
+        } else if (tipoFiltro === 'fecha' && filtroFechaInicio && filtroFechaFin) {
+          params.tipo_filtro = 'fecha';
+          params.fecha_inicio = filtroFechaInicio;
+          params.fecha_fin = filtroFechaFin;
+        }
+        const { data } = await axios.get(`/api/v1/indicadores/${indicadorSel.id}/mediciones`, { params });
+        setMediciones(data);
+      } catch { setMediciones([]); }
+    };
+    fetchMediciones();
+  }, [indicadorSel, tipoFiltro, filtroPeriodoId, filtroFechaInicio, filtroFechaFin, fetchKey]);
 
   // Indicador CRUD
   const abrirNuevoInd = () => { setEditandoInd(null); setFormInd({ ...EMPTY_IND }); setMostrarFormInd(true); };
@@ -115,7 +132,7 @@ export default function IndicadoresPage() {
         await axios.post('/api/v1/mediciones', payload);
         Swal.fire({ icon: 'success', title: 'Registrada', text: 'Medición registrada', timer: 1500, showConfirmButton: false });
       }
-      setMostrarModalMed(false); setEditandoMed(null); cargarMediciones(indicadorSel);
+      setMostrarModalMed(false); setEditandoMed(null); setFetchKey(k => k + 1);
     } catch (err) {
       Swal.fire({ icon: 'error', title: 'Error', text: err.response?.data?.error || 'Error al guardar medición', confirmButtonColor: '#1e40af' });
     }
@@ -127,7 +144,7 @@ export default function IndicadoresPage() {
     try {
       await axios.delete(`/api/v1/mediciones/${med.id}`);
       Swal.fire({ icon: 'success', title: 'Eliminada', text: 'Medición eliminada', timer: 1500, showConfirmButton: false });
-      cargarMediciones(indicadorSel);
+      setFetchKey(k => k + 1);
     } catch (err) {
       Swal.fire({ icon: 'error', title: 'Error', text: err.response?.data?.error || 'Error al eliminar', confirmButtonColor: '#1e40af' });
     }

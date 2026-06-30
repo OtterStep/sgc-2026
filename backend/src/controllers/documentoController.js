@@ -15,9 +15,19 @@ const esCreadorOAdmin = (doc, usuario) => {
   return doc.creado_por === usuario.id || usuario.rol === 'admin';
 };
 
+const rolesSoloAprobados = ['docente', 'estudiante', 'administrativo'];
+
 export const listarDocumentos = async (req, res) => {
   try {
+    const where = {};
+    if (req.query.estado) {
+      where.estado = req.query.estado;
+    } else if (rolesSoloAprobados.includes(req.usuario.rol)) {
+      where.estado = 'aprobado';
+    }
+
     const docs = await Documento.findAll({
+      where,
       include: includeBase,
       order: [['creado_en', 'DESC']],
     });
@@ -31,6 +41,9 @@ export const obtenerDocumentoPorId = async (req, res) => {
   try {
     const doc = await Documento.findByPk(req.params.id, { include: includeBase });
     if (!doc) return res.status(404).json({ error: 'Documento no encontrado' });
+    if (rolesSoloAprobados.includes(req.usuario.rol) && doc.estado !== 'aprobado') {
+      return res.status(404).json({ error: 'Documento no encontrado' });
+    }
     res.json(doc);
   } catch (err) {
     res.status(500).json({ error: formatError(err) });
@@ -271,6 +284,9 @@ export const listarVersiones = async (req, res) => {
   try {
     const doc = await Documento.findByPk(req.params.id);
     if (!doc) return res.status(404).json({ error: 'Documento no encontrado' });
+    if (rolesSoloAprobados.includes(req.usuario.rol) && doc.estado !== 'aprobado') {
+      return res.status(404).json({ error: 'Documento no encontrado' });
+    }
 
     const versiones = await VersionDocumento.findAll({
       where: { documento_id: req.params.id },
@@ -286,7 +302,8 @@ export const listarVersiones = async (req, res) => {
 
 export const generarReporteDocumentos = async (req, res) => {
   try {
-    const docs = await Documento.findAll({ raw: true });
+    const where = rolesSoloAprobados.includes(req.usuario.rol) ? { estado: 'aprobado' } : {};
+    const docs = await Documento.findAll({ where, raw: true });
     const filas = docs.map(d => ([
       d.codigo || '-',
       d.titulo || '-',

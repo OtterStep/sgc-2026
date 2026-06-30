@@ -61,8 +61,25 @@ export const eliminarIndicador = async (req, res) => {
 export const listarMediciones = async (req, res) => {
   try {
     const { indicador_id } = req.params;
+    const { tipo_filtro, periodo_id, fecha_inicio, fecha_fin } = req.query;
+
+    const where = { indicador_id };
+
+    if (tipo_filtro === 'periodo' && periodo_id) {
+      const periodo = await PeriodoAcademico.findByPk(periodo_id);
+      if (periodo) {
+        where.fecha_medicion = {
+          [Op.between]: [periodo.fecha_inicio, periodo.fecha_fin],
+        };
+      }
+    } else if (tipo_filtro === 'fecha' && fecha_inicio && fecha_fin) {
+      where.fecha_medicion = {
+        [Op.between]: [fecha_inicio, fecha_fin],
+      };
+    }
+
     const data = await MedicionIndicador.findAll({
-      where: { indicador_id },
+      where,
       order: [['fecha_medicion', 'DESC']],
     });
     res.json(data);

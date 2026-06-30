@@ -23,8 +23,8 @@ const ESTADO_LABEL = {
 export default function DocumentosPage() {
   const { usuario } = useAuth();
   const esGestion = ['admin', 'gestor_calidad'].includes(usuario?.rol);
-  const esSoloLectura = ['docente', 'estudiante', 'egresado', 'auditor'].includes(usuario?.rol);
-  const esExterno = ['docente', 'estudiante', 'egresado'].includes(usuario?.rol);
+  const esSoloLectura = ['docente', 'estudiante', 'administrativo', 'egresado', 'auditor'].includes(usuario?.rol);
+  const esExterno = ['docente', 'estudiante', 'administrativo'].includes(usuario?.rol);
   const [documentos, setDocumentos] = useState([]);
   const [filtro, setFiltro] = useState('');
   const [mostrarModal, setMostrarModal] = useState(false);
